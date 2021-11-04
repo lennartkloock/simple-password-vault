@@ -5,5 +5,5 @@ fn index() -> &'static str {
 
 #[rocket::launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index])
+    rocket::build().mount("/", rocket::routes![index])
 }
