@@ -2,22 +2,18 @@ use rocket::fairing;
 use rocket::serde;
 
 mod database;
+mod routes;
 
 #[derive(serde::Deserialize)]
 pub struct VaultConfig {
     db_url: String,
 }
 
-#[rocket::get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
-}
-
 #[rocket::main]
 async fn main() {
     let rocket = rocket::build()
         .attach(fairing::AdHoc::config::<VaultConfig>())
-        .mount("/", rocket::routes![index]);
+        .mount("/", routes::get_routes());
     match rocket.figment().extract::<VaultConfig>() {
         Ok(config) => {
             match database::init(&config.db_url).await {
