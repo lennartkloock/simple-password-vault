@@ -19,6 +19,3 @@ Cargo.lock
 
 ### Rocket
 Rocket.toml
-
-### Custom
-public/
