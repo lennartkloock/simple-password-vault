@@ -1,0 +1,69 @@
+$font-stack: 'Open Sans', sans-serif;
+
+* {
+    font-family: $font-stack;
+    margin: 0;
+}
+
+.full-height {
+    height: 100vh;
+}
+
+@mixin center-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.center-container {
+    @include center-flex;
+}
+
+.center-dialogue {
+    margin: 20px;
+
+    @include center-flex;
+    flex-direction: column;
+
+    width: 25vw;
+    padding: 20px;
+
+    text-align: center;
+    border: solid gray;
+    border-radius: 15px;
+}
+
+@media only screen and (max-width: 600px) {
+    .center-dialogue {
+        width: 100%;
+    }
+}
+
+.button {
+    padding: 6px 16px 6px 16px;
+}
+
+footer {
+    & {
+        position: fixed;
+        bottom: 5px;
+        right: 10px;
+        width: 100vw;
+
+        text-align: right;
+        color: gray;
+        font-weight: lighter;
+        font-size: x-small;
+    }
+
+    a {
+        & {
+            color: gray;
+            text-decoration: none;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
