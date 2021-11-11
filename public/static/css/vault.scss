@@ -1,10 +1,30 @@
-@use "container";
+@use "layout";
 
 $font-stack: 'Open Sans', sans-serif;
+$primary-color: #86BBD8;
 
 * {
     font-family: $font-stack;
     margin: 0;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+nav {
+    & {
+        @include layout.flex-container(space-between);
+        position: fixed;
+        background-color: $primary-color;
+        letter-spacing: 0.2em;
+    }
+
+    img {
+        margin: 10px 20px 10px 20px;
+        filter: invert(1);
+    }
 }
 
 .button {
@@ -16,7 +36,6 @@ footer {
         position: fixed;
         bottom: 5px;
         right: 10px;
-        width: 100vw;
 
         text-align: right;
         color: gray;
@@ -27,7 +46,6 @@ footer {
     a {
         & {
             color: gray;
-            text-decoration: none;
         }
 
         &:hover {
