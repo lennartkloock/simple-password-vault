@@ -1,8 +1,23 @@
+use crate::VaultConfig;
+
 pub fn get_routes() -> Vec<rocket::Route> {
-    rocket::routes![index]
+    rocket::routes![login]
 }
 
-#[rocket::get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+#[derive(serde::Serialize)]
+struct GeneralContext {
+    name: String,
+}
+
+#[rocket::get("/login")]
+fn login(config: &rocket::State<VaultConfig>) -> rocket_dyn_templates::Template {
+    rocket_dyn_templates::Template::render(
+        "login",
+        GeneralContext {
+            name: config
+                .name
+                .clone()
+                .unwrap_or(String::from("Password Vault")),
+        },
+    )
 }
