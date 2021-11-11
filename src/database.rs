@@ -6,5 +6,5 @@ pub async fn init(db_url: &str) -> Result<VaultDb, sqlx::Error> {
     mysql::MySqlPoolOptions::new()
         .connect(db_url)
         .await
-        .map(|pool| VaultDb(pool))
+        .map(VaultDb)
 }
