@@ -1,0 +1,33 @@
+.full-height {
+    height: 100vh;
+}
+
+@mixin center-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.center-container {
+    @include center-flex;
+}
+
+.center-dialogue {
+    margin: 20px;
+
+    @include center-flex;
+    flex-direction: column;
+
+    width: 25vw;
+    padding: 20px;
+
+    text-align: center;
+    border: solid gray;
+    border-radius: 15px;
+}
+
+@media only screen and (max-width: 600px) {
+    .center-dialogue {
+        width: 100%;
+    }
+}
