@@ -9,17 +9,7 @@
     <title>{{name}} | Login</title>
 </head>
 <body>
-<nav class="full-width">
-    <div class="center-container">
-        <a href="/" class="center-container">
-            <img src="images/streamline-shield.svg" alt="Logo" width="32" height="32">
-            <h2 class="hide-on-mobile">{{name}}</h2>
-        </a>
-        <p class="hide-on-mobile">&nbsp;|&nbsp;</p>
-        <p>Login</p>
-    </div>
-    <img src="images/streamline-brightness.svg" alt="Theme" width="32" height="32">
-</nav>
+{{> navigation page="Login" }}
 <div class="center-container full-height">
     <div class="center-dialogue">
         <h1>Login</h1>
@@ -31,10 +21,6 @@
         </form>
     </div>
 </div>
-<footer>
-    &copy; 2021 <a href="https://github.com/lennartkloock/simple-password-vault" target="_blank"
-                   rel="noopener noreferrer">Lennart
-    Kloock</a>
-</footer>
+{{> footer }}
 </body>
 </html>
