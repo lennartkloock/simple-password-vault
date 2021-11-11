@@ -9,14 +9,13 @@ nav {
         letter-spacing: 0.2em;
     }
 
-    *.margin-left {
-        @include layout.margin-top-bottom(10px);
-        margin-left: 20px;
+    .margin-10 {
+        margin-left: 10px;
+        margin-right: 10px;
     }
 
-    *.margin-right {
-        @include layout.margin-top-bottom(10px);
-        margin-right: 20px;
+    .padding-left-10 {
+        padding-left: 10px;
     }
 
     img {
