@@ -6,6 +6,11 @@
     height: 100vh;
 }
 
+@mixin margin-top-bottom($margin) {
+    margin-top: $margin;
+    margin-bottom: $margin;
+}
+
 @mixin flex-container($justify) {
     display: flex;
     align-items: center;

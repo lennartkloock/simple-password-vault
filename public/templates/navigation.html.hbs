@@ -1,11 +1,18 @@
 <nav class="full-width">
     <div class="center-container">
         <a href="/" class="center-container">
-            <img src="images/streamline-shield.svg" alt="Logo" width="32" height="32">
-            <h2 class="hide-on-mobile">{{name}}</h2>
+            <img src="images/streamline-shield.svg" alt="Logo" class="margin-left" width="32" height="32">
+            <h2 class="margin-left hide-on-mobile">{{name}}</h2>
         </a>
         <p class="hide-on-mobile">&nbsp;|&nbsp;</p>
         <p>{{page}}</p>
     </div>
-    <img src="images/streamline-brightness.svg" alt="Theme" width="32" height="32">
+    <div class="center-container">
+        {{#if logout}}
+            <img src="images/streamline-logout.svg" alt="Theme" class="margin-right" width="32" height="32">
+        {{/if}}
+        {{#if theme-switch}}
+            <img src="images/streamline-brightness.svg" alt="Theme" class="margin-right" width="32" height="32">
+        {{/if}}
+    </div>
 </nav>

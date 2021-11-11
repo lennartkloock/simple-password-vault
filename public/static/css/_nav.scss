@@ -1,0 +1,25 @@
+@use "layout";
+@use "vars";
+
+nav {
+    & {
+        @include layout.flex-container(space-between);
+        position: fixed;
+        background-color: vars.$primary-color;
+        letter-spacing: 0.2em;
+    }
+
+    *.margin-left {
+        @include layout.margin-top-bottom(10px);
+        margin-left: 20px;
+    }
+
+    *.margin-right {
+        @include layout.margin-top-bottom(10px);
+        margin-right: 20px;
+    }
+
+    img {
+        filter: invert(1);
+    }
+}

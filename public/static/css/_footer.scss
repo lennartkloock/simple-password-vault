@@ -1,0 +1,22 @@
+footer {
+    & {
+        position: fixed;
+        bottom: 5px;
+        right: 10px;
+
+        text-align: right;
+        color: gray;
+        font-weight: lighter;
+        font-size: x-small;
+    }
+
+    a {
+        & {
+            color: gray;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}

@@ -1,10 +1,10 @@
+@use "vars";
 @use "layout";
-
-$font-stack: 'Open Sans', sans-serif;
-$primary-color: #86BBD8;
+@use "nav";
+@use "footer";
 
 * {
-    font-family: $font-stack;
+    font-family: vars.$font-stack;
     margin: 0;
 }
 
@@ -13,43 +13,6 @@ a {
     color: black;
 }
 
-nav {
-    & {
-        @include layout.flex-container(space-between);
-        position: fixed;
-        background-color: $primary-color;
-        letter-spacing: 0.2em;
-    }
-
-    img {
-        margin: 10px 20px 10px 20px;
-        filter: invert(1);
-    }
-}
-
 .button {
     padding: 6px 16px 6px 16px;
-}
-
-footer {
-    & {
-        position: fixed;
-        bottom: 5px;
-        right: 10px;
-
-        text-align: right;
-        color: gray;
-        font-weight: lighter;
-        font-size: x-small;
-    }
-
-    a {
-        & {
-            color: gray;
-        }
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
 }
