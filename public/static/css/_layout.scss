@@ -19,6 +19,11 @@ $small-space: 10px;
     @include flex-container(center);
 }
 
+.center-column-container {
+    @include flex-container(center);
+    flex-direction: column;
+}
+
 .space-between-container {
     @include flex-container(space-between);
 }
@@ -28,8 +33,7 @@ $small-space: 10px;
     margin: $big-space;
     padding: 30px;
 
-    @include flex-container(center);
-    flex-direction: column;
+    @extend .center-column-container;
 
     text-align: center;
     border: solid gray;
