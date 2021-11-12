@@ -17,10 +17,12 @@ $small-space: 10px;
 
 .center-container {
     @include flex-container(center);
+    text-align: center;
 }
 
 .center-column-container {
     @include flex-container(center);
+    text-align: center;
     flex-direction: column;
 }
 
