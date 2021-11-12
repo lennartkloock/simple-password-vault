@@ -1,0 +1,14 @@
+@use "layout";
+
+.action-bar {
+    position: fixed;
+    bottom: layout.$small-space;
+    right: layout.$small-space;
+
+    @include layout.flex-container(flex-start);
+    flex-direction: column;
+
+    img {
+        padding: layout.$small-space / 2;
+    }
+}

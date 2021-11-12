@@ -2,6 +2,7 @@
 @use "layout";
 @use "nav";
 @use "footer";
+@use "action-bar";
 
 * {
     font-family: vars.$font-stack;
@@ -10,9 +11,13 @@
 
 a {
     text-decoration: none;
-    color: black;
+    color: inherit;
 }
 
-.button {
+img {
+    filter: invert(1);
+}
+
+.big-button {
     padding: 6px 16px 6px 16px;
 }

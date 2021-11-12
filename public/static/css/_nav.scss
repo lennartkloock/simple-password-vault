@@ -1,25 +1,29 @@
 @use "layout";
 @use "vars";
 
+$nav-height: 60px;
+
+.padding-to-nav {
+    padding-top: $nav-height;
+}
+
 nav {
-    & {
-        @include layout.flex-container(space-between);
-        position: fixed;
-        background-color: vars.$primary-color;
-        letter-spacing: 0.2em;
-    }
+    @extend .space-between-container;
+    height: $nav-height;
+    position: fixed;
+    background-color: vars.$primary-color;
+    letter-spacing: 0.2em;
 
     .margin-10 {
-        margin-left: 10px;
-        margin-right: 10px;
+        margin-left: layout.$small-space;
+        margin-right: layout.$small-space;
     }
 
     .padding-left-10 {
-        padding-left: 10px;
+        padding-left: layout.$small-space;
     }
 
     img {
-        filter: invert(1);
         padding: 10px;
     }
 }

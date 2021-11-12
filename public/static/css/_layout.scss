@@ -1,3 +1,6 @@
+$big-space: 20px;
+$small-space: 10px;
+
 .full-width {
     width: 100vw;
 }
@@ -16,13 +19,17 @@
     @include flex-container(center);
 }
 
+.space-between-container {
+    @include flex-container(space-between);
+}
+
 .center-dialogue {
-    margin: 20px;
+    @extend .responsive-width;
+    margin: $big-space;
+    padding: 30px;
 
     @include flex-container(center);
     flex-direction: column;
-
-    padding: 30px;
 
     text-align: center;
     border: solid gray;
@@ -30,8 +37,8 @@
 }
 
 @media only screen and (max-width: 600px) {
-    .center-dialogue {
-        width: 100%;
+    .responsive-width {
+        width: 100vw;
     }
     .hide-on-mobile {
         display: none;
