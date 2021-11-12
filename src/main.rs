@@ -1,3 +1,4 @@
+use crate::database::VaultDb;
 use rocket::fairing;
 use rocket::serde;
 
@@ -18,7 +19,7 @@ async fn main() {
         .attach(rocket_dyn_templates::Template::fairing())
         .mount("/", routes::get_routes());
     match rocket.figment().extract::<VaultConfig>() {
-        Ok(config) => match database::init(&config.db_url).await {
+        Ok(config) => match init_database(&config).await {
             Ok(db) => {
                 rocket
                     .mount("/", rocket::fs::FileServer::from(&config.static_dir))
@@ -35,4 +36,10 @@ async fn main() {
         },
         Err(e) => log::error!("An error occurred while reading the config: {}", e),
     }
+}
+
+async fn init_database(config: &VaultConfig) -> sqlx::Result<VaultDb> {
+    let db = database::init(&config.db_url).await?;
+    db.setup().await?;
+    Ok(db)
 }
