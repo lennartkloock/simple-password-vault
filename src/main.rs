@@ -18,7 +18,8 @@ async fn main() {
         .attach(fairing::AdHoc::config::<VaultConfig>())
         .attach(VaultDb::fairing().await)
         .attach(templates::Template::fairing())
-        .mount("/", routes::get_routes());
+        .mount("/", routes::authentication::get_routes())
+        .mount("/", routes::vault::get_routes());
 
     match rocket.figment().extract::<VaultConfig>() {
         Ok(config) => {
