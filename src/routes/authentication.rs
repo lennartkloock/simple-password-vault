@@ -70,17 +70,15 @@ async fn new_admin_password_form(
     {
         if let Some(ref data) = form.value {
             database
-                .insert_password(&data.password, true)
+                .insert_password(data.password, true)
                 .await
                 .map(|_| response::Redirect::to(rocket::uri!(login)))
                 .map_err(|_| Err(http::Status::InternalServerError))
         } else {
-            Err(Ok(format!(
-                "{}",
-                form.context
-                    .field_errors("password-confirm")
-                    .fold(String::new(), |i, e| format!("{:?}\n{}", e, i))
-            )))
+            Err(Ok(form
+                .context
+                .field_errors("password-confirm")
+                .fold(String::new(), |i, e| format!("{:?}\n{}", e, i))))
         }
     } else {
         Ok(response::Redirect::to(rocket::uri!(login)))
