@@ -1,7 +1,11 @@
 use crate::{VaultConfig, VaultDb};
+use rocket::response::Redirect;
+use rocket::{http, response};
+
+const SESSION_TOKEN_COOKIE: &str = "_session_token";
 
 pub fn get_routes() -> Vec<rocket::Route> {
-    rocket::routes![login, vault, vault_table_id]
+    rocket::routes![index, login, vault, vault_table_id]
 }
 
 #[derive(serde::Serialize)]
@@ -24,6 +28,15 @@ impl From<&VaultConfig> for GeneralContext {
             .clone()
             .map(|name| GeneralContext { name })
             .unwrap_or_default()
+    }
+}
+
+#[rocket::get("/")]
+async fn index(cookies: &http::CookieJar<'_>) -> response::Redirect {
+    if cookies.get(SESSION_TOKEN_COOKIE).is_some() {
+        Redirect::to(rocket::uri!(vault))
+    } else {
+        Redirect::to(rocket::uri!(login))
     }
 }
 
