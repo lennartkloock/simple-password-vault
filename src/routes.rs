@@ -1,6 +1,7 @@
 use crate::{VaultConfig, VaultDb};
 use rocket::response::Redirect;
 use rocket::{http, response};
+use rocket_dyn_templates as templates;
 
 const SESSION_TOKEN_COOKIE: &str = "_session_token";
 
@@ -50,14 +51,11 @@ async fn login(
 }
 
 #[rocket::get("/vault")]
-async fn vault(config: &rocket::State<VaultConfig>) -> rocket_dyn_templates::Template {
-    rocket_dyn_templates::Template::render("vault", GeneralContext::from(config.inner()))
+async fn vault(config: &rocket::State<VaultConfig>) -> templates::Template {
+    templates::Template::render("vault", GeneralContext::from(config.inner()))
 }
 
 #[rocket::get("/vault?<id>")]
-async fn vault_table_id(
-    config: &rocket::State<VaultConfig>,
-    id: u32,
-) -> rocket_dyn_templates::Template {
-    rocket_dyn_templates::Template::render("table-not-found", GeneralContext::from(config.inner()))
+async fn vault_table_id(config: &rocket::State<VaultConfig>, id: u32) -> templates::Template {
+    templates::Template::render("table-not-found", GeneralContext::from(config.inner()))
 }

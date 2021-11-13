@@ -1,5 +1,6 @@
 use crate::database::VaultDb;
 use rocket::{fairing, fs, serde};
+use rocket_dyn_templates as templates;
 
 mod database;
 mod routes;
@@ -16,7 +17,7 @@ async fn main() {
     let rocket = rocket::build()
         .attach(fairing::AdHoc::config::<VaultConfig>())
         .attach(VaultDb::fairing().await)
-        .attach(rocket_dyn_templates::Template::fairing())
+        .attach(templates::Template::fairing())
         .mount("/", routes::get_routes());
 
     match rocket.figment().extract::<VaultConfig>() {
