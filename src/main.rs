@@ -13,21 +13,20 @@ pub struct VaultConfig {
 
 #[rocket::main]
 async fn main() {
-    let mut rocket = rocket::build()
+    let rocket = rocket::build()
         .attach(fairing::AdHoc::config::<VaultConfig>())
         .attach(VaultDb::fairing().await)
         .attach(rocket_dyn_templates::Template::fairing())
         .mount("/", routes::get_routes());
 
-    let static_dir: Option<String> = rocket.state::<VaultConfig>().map(|c| c.static_dir.clone());
-    if let Some(static_dir) = static_dir {
-        rocket = rocket.mount("/", fs::FileServer::from(&static_dir));
-    } else {
-        rocket::error!("An error occurred while reading the config")
+    match rocket.figment().extract::<VaultConfig>() {
+        Ok(config) => {
+            rocket
+                .mount("/", fs::FileServer::from(&config.static_dir))
+                .launch()
+                .await
+                .expect("Rocket blew up at launch (⩾﹏⩽)");
+        }
+        Err(e) => rocket::error!("An error occurred while reading the config: {}", e),
     }
-
-    rocket
-        .launch()
-        .await
-        .expect("Rocket blew up at launch (⩾﹏⩽)");
 }
