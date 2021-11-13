@@ -11,7 +11,7 @@
         <h1>Login</h1>
         <p>Please provide your password below to continue</p>
         <form action="/login" method="post">
-            <input type="password" name="password" placeholder="Password" id="password-field" required>
+            <input type="password" name="password" placeholder="Password" minlength="8" class="password-field" required>
             <br>
             <input type="submit" value="Log In" class="big-button">
         </form>
