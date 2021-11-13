@@ -28,13 +28,13 @@ async fn main() {
                     .await
                     .expect("Rocket blew up at launch (⩾﹏⩽)");
             }
-            Err(e) => log::error!(
+            Err(e) => rocket::error!(
                 "An error occurred while initializing the database: {}\n\
                     Please make sure your MySQL/MariaDB server is responding at the specified url",
                 e
             ),
         },
-        Err(e) => log::error!("An error occurred while reading the config: {}", e),
+        Err(e) => rocket::error!("An error occurred while reading the config: {}", e),
     }
 }
 

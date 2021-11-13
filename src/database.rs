@@ -14,10 +14,10 @@ type QueryResult = sqlx::Result<sqlx::mysql::MySqlQueryResult>;
 impl VaultDb {
     pub async fn setup(&self) -> sqlx::Result<()> {
         self.create_index_table().await.map(|qr| {
-            log::debug!("Successfully created index table: {:?}", qr);
+            rocket::debug!("Successfully created index table: {:?}", qr);
         })?;
         self.create_auth_table().await.map(|qr| {
-            log::debug!("Successfully created auth table: {:?}", qr);
+            rocket::debug!("Successfully created auth table: {:?}", qr);
         })?;
         Ok(())
     }
