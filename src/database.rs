@@ -1,17 +1,46 @@
+use crate::VaultConfig;
+use rocket::fairing;
 use sqlx::mysql;
 
 pub struct VaultDb(mysql::MySqlPool);
 
-pub async fn init(db_url: &str) -> Result<VaultDb, sqlx::Error> {
-    mysql::MySqlPoolOptions::new()
-        .connect(db_url)
-        .await
-        .map(VaultDb)
+#[derive(Debug, sqlx::FromRow)]
+pub struct Password {
+    id: u32,
+    password_hash: String,
+    admin: bool,
 }
 
 type QueryResult = sqlx::Result<sqlx::mysql::MySqlQueryResult>;
 
 impl VaultDb {
+    pub async fn fairing() -> impl fairing::Fairing {
+        fairing::AdHoc::try_on_ignite("Database", |rocket| async move {
+            if let Some(config) = rocket.state::<VaultConfig>() {
+                match VaultDb::init(&config.db_url).await {
+                    Ok(db) => return Ok(rocket.manage(db)),
+                    Err(e) => {
+                        rocket::error!(
+                            "An error occurred while initializing the database: {}\n\
+                                Please make sure your MySQL/MariaDB server is responding at the specified url",
+                            e
+                        );
+                    }
+                }
+            }
+            Err(rocket)
+        })
+    }
+
+    pub async fn init(db_url: &str) -> Result<Self, sqlx::Error> {
+        let db: Self = mysql::MySqlPoolOptions::new()
+            .connect(db_url)
+            .await
+            .map(Self)?;
+        db.setup().await?;
+        Ok(db)
+    }
+
     pub async fn setup(&self) -> sqlx::Result<()> {
         self.create_index_table().await.map(|qr| {
             rocket::debug!("Successfully created index table: {:?}", qr);
@@ -29,7 +58,7 @@ impl VaultDb {
     }
 
     pub async fn create_auth_table(&self) -> QueryResult {
-        sqlx::query("CREATE TABLE IF NOT EXISTS vault_auth (id int PRIMARY KEY AUTO_INCREMENT, password_hash varchar(64) NOT NULL UNIQUE)")
+        sqlx::query("CREATE TABLE IF NOT EXISTS vault_auth (id int PRIMARY KEY AUTO_INCREMENT, password_hash varchar(64) NOT NULL UNIQUE, admin BOOLEAN NOT NULL)")
             .execute(&self.0)
             .await
     }
@@ -41,5 +70,11 @@ impl VaultDb {
         .bind(table_name)
         .execute(&self.0)
         .await
+    }
+
+    pub async fn fetch_all_password(&self) -> sqlx::Result<Vec<Password>> {
+        sqlx::query_as::<_, Password>("SELECT * FROM vault_auth")
+            .fetch_all(&self.0)
+            .await
     }
 }
