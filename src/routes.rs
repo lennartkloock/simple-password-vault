@@ -1,7 +1,7 @@
-use crate::VaultConfig;
+use crate::{VaultConfig, VaultDb};
 
 pub fn get_routes() -> Vec<rocket::Route> {
-    rocket::routes![login, vault]
+    rocket::routes![login, vault, vault_table_id]
 }
 
 #[derive(serde::Serialize)]
@@ -28,11 +28,20 @@ impl From<&VaultConfig> for GeneralContext {
 }
 
 #[rocket::get("/login")]
-fn login(config: &rocket::State<VaultConfig>) -> rocket_dyn_templates::Template {
+async fn login(
+    config: &rocket::State<VaultConfig>,
+    database: &rocket::State<VaultDb>,
+) -> rocket_dyn_templates::Template {
+    rocket::debug!("{:?}", database.fetch_all_password().await);
     rocket_dyn_templates::Template::render("login", GeneralContext::from(config.inner()))
 }
 
 #[rocket::get("/vault")]
 fn vault(config: &rocket::State<VaultConfig>) -> rocket_dyn_templates::Template {
     rocket_dyn_templates::Template::render("vault", GeneralContext::from(config.inner()))
+}
+
+#[rocket::get("/vault?<id>")]
+fn vault_table_id(config: &rocket::State<VaultConfig>, id: u32) -> rocket_dyn_templates::Template {
+    rocket_dyn_templates::Template::render("table-not-found", GeneralContext::from(config.inner()))
 }
