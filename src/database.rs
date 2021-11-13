@@ -52,29 +52,38 @@ impl VaultDb {
     }
 
     pub async fn create_index_table(&self) -> QueryResult {
-        sqlx::query("CREATE TABLE IF NOT EXISTS vault_index (id int PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL UNIQUE, ui_name varchar(64) NOT NULL UNIQUE)")
+        sqlx::query("CREATE TABLE IF NOT EXISTS vault_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL UNIQUE, ui_name varchar(64) NOT NULL UNIQUE)")
             .execute(&self.0)
             .await
     }
 
     pub async fn create_auth_table(&self) -> QueryResult {
-        sqlx::query("CREATE TABLE IF NOT EXISTS vault_auth (id int PRIMARY KEY AUTO_INCREMENT, password_hash varchar(64) NOT NULL UNIQUE, admin BOOLEAN NOT NULL)")
+        sqlx::query("CREATE TABLE IF NOT EXISTS vault_auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, password_hash varchar(64) NOT NULL UNIQUE, admin BOOLEAN NOT NULL)")
             .execute(&self.0)
             .await
     }
 
     pub async fn create_vault_table(&self, table_name: &str) -> QueryResult {
         sqlx::query(
-            "CREATE TABLE IF NOT EXISTS ? (id int PRIMARY KEY AUTO_INCREMENT, number varchar(256), password varchar(256))",
+            "CREATE TABLE IF NOT EXISTS ? (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, number varchar(256), password varchar(256))",
         )
         .bind(table_name)
         .execute(&self.0)
         .await
     }
 
-    pub async fn fetch_all_password(&self) -> sqlx::Result<Vec<Password>> {
-        sqlx::query_as::<_, Password>("SELECT * FROM vault_auth")
+    pub async fn fetch_all_password(&self, only_admin: bool) -> sqlx::Result<Vec<Password>> {
+        sqlx::query_as::<_, Password>("SELECT * FROM vault_auth WHERE IF(?, admin = 1, true)")
+            .bind(only_admin)
             .fetch_all(&self.0)
+            .await
+    }
+
+    pub async fn insert_password(&self, password: &str, admin: bool) -> QueryResult {
+        sqlx::query("INSERT INTO vault_auth (password_hash, admin) VALUES (SHA2(?, 256), ?)")
+            .bind(password)
+            .bind(admin)
+            .execute(&self.0)
             .await
     }
 }

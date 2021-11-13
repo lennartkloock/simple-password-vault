@@ -1,12 +1,18 @@
 use crate::{VaultConfig, VaultDb};
-use rocket::response::Redirect;
-use rocket::{http, response};
+use rocket::{form, http, response};
 use rocket_dyn_templates as templates;
 
 const SESSION_TOKEN_COOKIE: &str = "_session_token";
 
 pub fn get_routes() -> Vec<rocket::Route> {
-    rocket::routes![index, login, vault, vault_table_id]
+    rocket::routes![
+        index,
+        login,
+        new_admin_password,
+        new_admin_password_form,
+        vault,
+        vault_table_id
+    ]
 }
 
 #[derive(serde::Serialize)]
@@ -32,12 +38,14 @@ impl From<&VaultConfig> for GeneralContext {
     }
 }
 
+type ServerResponse<T> = Result<T, http::Status>;
+
 #[rocket::get("/")]
 async fn index(cookies: &http::CookieJar<'_>) -> response::Redirect {
     if cookies.get(SESSION_TOKEN_COOKIE).is_some() {
-        Redirect::to(rocket::uri!(vault))
+        response::Redirect::to(rocket::uri!(vault))
     } else {
-        Redirect::to(rocket::uri!(login))
+        response::Redirect::to(rocket::uri!(login))
     }
 }
 
@@ -45,9 +53,79 @@ async fn index(cookies: &http::CookieJar<'_>) -> response::Redirect {
 async fn login(
     config: &rocket::State<VaultConfig>,
     database: &rocket::State<VaultDb>,
-) -> rocket_dyn_templates::Template {
-    rocket::debug!("{:?}", database.fetch_all_password().await);
-    rocket_dyn_templates::Template::render("login", GeneralContext::from(config.inner()))
+) -> ServerResponse<Result<templates::Template, response::Redirect>> {
+    if database
+        .fetch_all_password(true)
+        .await
+        .map_err(|_| http::Status::InternalServerError)?
+        .is_empty()
+    {
+        Ok(Err(response::Redirect::to(rocket::uri!(
+            new_admin_password
+        ))))
+    } else {
+        Ok(Ok(templates::Template::render(
+            "login",
+            GeneralContext::from(config.inner()),
+        )))
+    }
+}
+
+#[rocket::get("/new-admin-password")]
+async fn new_admin_password(
+    config: &rocket::State<VaultConfig>,
+    database: &rocket::State<VaultDb>,
+) -> ServerResponse<Result<templates::Template, response::Redirect>> {
+    if database
+        .fetch_all_password(true)
+        .await
+        .map_err(|_| http::Status::InternalServerError)?
+        .is_empty()
+    {
+        Ok(Ok(templates::Template::render(
+            "new-admin-password",
+            GeneralContext::from(config.inner()),
+        )))
+    } else {
+        Ok(Err(response::Redirect::to(rocket::uri!(login))))
+    }
+}
+
+#[derive(rocket::FromForm)]
+struct NewAdminPasswordData<'a> {
+    password: &'a str,
+    #[field(name = "password-confirm", validate = eq(self.password))]
+    _password_confirm: &'a str,
+}
+
+#[rocket::post("/new-admin-password", data = "<form>")]
+async fn new_admin_password_form(
+    database: &rocket::State<VaultDb>,
+    form: form::Form<form::Contextual<'_, NewAdminPasswordData<'_>>>,
+) -> Result<response::Redirect, ServerResponse<String>> {
+    if database
+        .fetch_all_password(true)
+        .await
+        .map_err(|_| Err(http::Status::InternalServerError))?
+        .is_empty()
+    {
+        if let Some(ref data) = form.value {
+            database
+                .insert_password(&data.password, true)
+                .await
+                .map(|_| response::Redirect::to(rocket::uri!(login)))
+                .map_err(|_| Err(http::Status::InternalServerError))
+        } else {
+            Err(Ok(format!(
+                "{}",
+                form.context
+                    .field_errors("password-confirm")
+                    .fold(String::new(), |i, e| format!("{:?}\n{}", e, i))
+            )))
+        }
+    } else {
+        Ok(response::Redirect::to(rocket::uri!(login)))
+    }
 }
 
 #[rocket::get("/vault")]
