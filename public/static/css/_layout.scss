@@ -9,6 +9,10 @@ $small-space: 10px;
     height: 100vh;
 }
 
+.big-margin {
+    margin: $big-space;
+}
+
 @mixin flex-container($justify) {
     display: flex;
     align-items: center;
@@ -32,7 +36,7 @@ $small-space: 10px;
 
 .center-dialogue {
     @extend .responsive-width;
-    margin: $big-space;
+    @extend .big-margin;
     padding: 30px;
 
     @extend .center-column-container;
