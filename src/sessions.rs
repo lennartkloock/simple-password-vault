@@ -1,7 +1,6 @@
 use rocket::tokio::time;
 use rocket::{fairing, http, request};
-use std::collections;
-use std::marker::PhantomData;
+use std::{collections, marker};
 
 type SessionMap = collections::HashMap<SessionToken, time::Instant>;
 type SessionToken = String;
@@ -43,7 +42,7 @@ impl SessionManager {
     }
 }
 
-pub struct TokenAuth<M>(PhantomData<M>);
+pub struct TokenAuth<M>(marker::PhantomData<M>);
 
 #[derive(Debug)]
 pub enum TokenAuthError {
@@ -79,7 +78,7 @@ impl<'r, M: AuthMethod> request::FromRequest<'r> for TokenAuth<M> {
                         if !valid {
                             return Self::Error::ExpiredToken.into();
                         }
-                        request::Outcome::Success(Self(PhantomData))
+                        request::Outcome::Success(Self(marker::PhantomData))
                     }
                     None => Self::Error::NoSuchToken.into(),
                 },
