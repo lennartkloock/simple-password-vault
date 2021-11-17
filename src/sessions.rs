@@ -78,7 +78,7 @@ impl<'r, M: AuthMethod> request::FromRequest<'r> for TokenAuth<M> {
                         if !valid {
                             return Self::Error::ExpiredToken.into();
                         }
-                        request::Outcome::Success(Self(M::default()))
+                        request::Outcome::Success(Self(M::new()))
                     }
                     None => Self::Error::NoSuchToken.into(),
                 },
@@ -89,14 +89,18 @@ impl<'r, M: AuthMethod> request::FromRequest<'r> for TokenAuth<M> {
     }
 }
 
-pub trait AuthMethod: Default {
+pub trait AuthMethod {
+    fn new() -> Self;
     fn retrieve_token(request: &request::Request) -> Option<SessionToken>;
 }
 
-#[derive(Default)]
 pub struct WithCookie;
 
 impl AuthMethod for WithCookie {
+    fn new() -> Self {
+        Self
+    }
+
     fn retrieve_token(request: &request::Request) -> Option<SessionToken> {
         request
             .cookies()
@@ -105,10 +109,13 @@ impl AuthMethod for WithCookie {
     }
 }
 
-#[derive(Default)]
 pub struct WithHeader;
 
 impl AuthMethod for WithHeader {
+    fn new() -> Self {
+        Self
+    }
+
     fn retrieve_token(request: &request::Request) -> Option<SessionToken> {
         // Some(request.headers().get_one("Authorization")?.split("Basic ").sum())
         todo!()
