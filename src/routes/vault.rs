@@ -1,5 +1,5 @@
-use crate::routes::{GeneralContext, SESSION_TOKEN_COOKIE};
-use crate::sessions::{TokenAuth, WithHeader};
+use crate::routes::GeneralContext;
+use crate::sessions::{TokenAuth, WithHeader, SESSION_TOKEN_COOKIE};
 use crate::{templates, VaultConfig};
 use rocket::{http, response};
 
@@ -26,5 +26,6 @@ async fn vault(
 
 #[rocket::get("/vault?<id>")]
 async fn vault_table_id(config: &rocket::State<VaultConfig>, id: u32) -> templates::Template {
-    templates::Template::render("table-not-found", GeneralContext::from(config.inner()))
+    templates::Template::render("table-not-found", GeneralContext::from(config.inner()));
+    todo!()
 }

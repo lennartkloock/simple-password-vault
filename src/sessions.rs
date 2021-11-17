@@ -2,6 +2,8 @@ use rocket::tokio::time;
 use rocket::{fairing, http, request};
 use std::{collections, marker};
 
+pub const SESSION_TOKEN_COOKIE: &str = "_session_token";
+
 type SessionMap = collections::HashMap<SessionToken, time::Instant>;
 type SessionToken = String;
 
@@ -99,7 +101,7 @@ impl AuthMethod for WithCookie {
     fn retrieve_token(request: &request::Request) -> Option<SessionToken> {
         request
             .cookies()
-            .get("_session_token")
+            .get(SESSION_TOKEN_COOKIE)
             .map(|c| SessionToken::from(c.value()))
     }
 }

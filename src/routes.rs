@@ -1,7 +1,5 @@
 use crate::VaultConfig;
 
-const SESSION_TOKEN_COOKIE: &str = "_session_token";
-
 pub mod authentication;
 pub mod vault;
 
