@@ -1,4 +1,5 @@
 use crate::routes::{GeneralContext, SESSION_TOKEN_COOKIE};
+use crate::sessions::{TokenAuth, WithHeader};
 use crate::{templates, VaultConfig};
 use rocket::{http, response};
 
@@ -16,7 +17,10 @@ async fn index(cookies: &http::CookieJar<'_>) -> response::Redirect {
 }
 
 #[rocket::get("/vault")]
-async fn vault(config: &rocket::State<VaultConfig>) -> templates::Template {
+async fn vault(
+    config: &rocket::State<VaultConfig>,
+    _auth: TokenAuth<WithHeader>,
+) -> templates::Template {
     templates::Template::render("vault", GeneralContext::from(config.inner()))
 }
 
