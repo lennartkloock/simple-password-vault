@@ -108,7 +108,12 @@ pub struct WithHeader;
 
 impl AuthMethod for WithHeader {
     fn retrieve_token(request: &request::Request) -> Option<SessionToken> {
-        // Some(request.headers().get_one("Authorization")?.split("Basic ").sum())
-        todo!()
+        request
+            .headers()
+            .get_one("Authorization")?
+            .split("Basic ")
+            .collect::<Vec<&str>>()
+            .first()
+            .map(|s| s.to_string())
     }
 }
