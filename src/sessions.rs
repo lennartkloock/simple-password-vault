@@ -1,6 +1,7 @@
 use rocket::tokio::time;
 use rocket::{fairing, http, request};
 use std::collections;
+use std::marker::PhantomData;
 
 type SessionMap = collections::HashMap<SessionToken, time::Instant>;
 type SessionToken = String;
@@ -42,7 +43,7 @@ impl SessionManager {
     }
 }
 
-pub struct TokenAuth<M>(M);
+pub struct TokenAuth<M>(PhantomData<M>);
 
 #[derive(Debug)]
 pub enum TokenAuthError {
@@ -78,7 +79,7 @@ impl<'r, M: AuthMethod> request::FromRequest<'r> for TokenAuth<M> {
                         if !valid {
                             return Self::Error::ExpiredToken.into();
                         }
-                        request::Outcome::Success(Self(M::new()))
+                        request::Outcome::Success(Self(PhantomData))
                     }
                     None => Self::Error::NoSuchToken.into(),
                 },
@@ -90,17 +91,12 @@ impl<'r, M: AuthMethod> request::FromRequest<'r> for TokenAuth<M> {
 }
 
 pub trait AuthMethod {
-    fn new() -> Self;
     fn retrieve_token(request: &request::Request) -> Option<SessionToken>;
 }
 
 pub struct WithCookie;
 
 impl AuthMethod for WithCookie {
-    fn new() -> Self {
-        Self
-    }
-
     fn retrieve_token(request: &request::Request) -> Option<SessionToken> {
         request
             .cookies()
@@ -112,10 +108,6 @@ impl AuthMethod for WithCookie {
 pub struct WithHeader;
 
 impl AuthMethod for WithHeader {
-    fn new() -> Self {
-        Self
-    }
-
     fn retrieve_token(request: &request::Request) -> Option<SessionToken> {
         // Some(request.headers().get_one("Authorization")?.split("Basic ").sum())
         todo!()
