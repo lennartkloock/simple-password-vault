@@ -11,6 +11,7 @@ pub struct VaultConfig {
     name: Option<String>,
     db_url: String,
     static_dir: String,
+    token_length: Option<u32>,
     token_validity_duration_secs: u64,
 }
 
