@@ -54,6 +54,8 @@ fn gen_random_token(len: usize) -> String {
 
 pub struct TokenAuth<M>(marker::PhantomData<M>);
 
+pub type TokenAuthResult<M> = Result<TokenAuth<M>, TokenAuthError>;
+
 #[derive(Debug)]
 pub enum TokenAuthError {
     NoTokenSpecified,

@@ -12,13 +12,13 @@ pub fn get_routes() -> Vec<rocket::Route> {
     ]
 }
 
-type ServerResponse<T> = Result<T, http::Status>;
+type AuthResponse<T> = Result<T, http::Status>;
 
 #[rocket::get("/login")]
 async fn login(
     config: &rocket::State<VaultConfig>,
     database: &rocket::State<VaultDb>,
-) -> ServerResponse<Result<templates::Template, response::Redirect>> {
+) -> AuthResponse<Result<templates::Template, response::Redirect>> {
     if database
         .fetch_all_password(true)
         .await
@@ -48,7 +48,7 @@ async fn login_submit(
     session_manager: &rocket::State<SafeSessionManager>,
     cookies: &http::CookieJar<'_>,
     form: form::Form<LoginFormData<'_>>,
-) -> ServerResponse<response::Redirect> {
+) -> AuthResponse<response::Redirect> {
     if database
         .fetch_password(form.password)
         .await
@@ -77,7 +77,7 @@ async fn login_submit(
 async fn new_admin_password(
     config: &rocket::State<VaultConfig>,
     database: &rocket::State<VaultDb>,
-) -> ServerResponse<Result<templates::Template, response::Redirect>> {
+) -> AuthResponse<Result<templates::Template, response::Redirect>> {
     if database
         .fetch_all_password(true)
         .await
@@ -105,7 +105,7 @@ struct NewAdminPasswordData<'a> {
 async fn new_admin_password_form(
     database: &rocket::State<VaultDb>,
     form: form::Form<form::Contextual<'_, NewAdminPasswordData<'_>>>,
-) -> Result<response::Redirect, ServerResponse<String>> {
+) -> Result<response::Redirect, AuthResponse<String>> {
     if database
         .fetch_all_password(true)
         .await
