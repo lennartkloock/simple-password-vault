@@ -1,5 +1,5 @@
 use crate::routes::GeneralContext;
-use crate::sessions::{TokenAuth, WithHeader, SESSION_TOKEN_COOKIE};
+use crate::sessions::{TokenAuth, WithCookie, SESSION_TOKEN_COOKIE};
 use crate::{templates, VaultConfig};
 use rocket::{http, response};
 
@@ -19,13 +19,17 @@ async fn index(cookies: &http::CookieJar<'_>) -> response::Redirect {
 #[rocket::get("/vault")]
 async fn vault(
     config: &rocket::State<VaultConfig>,
-    _auth: TokenAuth<WithHeader>,
+    _auth: TokenAuth<WithCookie>,
 ) -> templates::Template {
     templates::Template::render("vault", GeneralContext::from(config.inner()))
 }
 
 #[rocket::get("/vault?<id>")]
-async fn vault_table_id(config: &rocket::State<VaultConfig>, id: u32) -> templates::Template {
+async fn vault_table_id(
+    config: &rocket::State<VaultConfig>,
+    _auth: TokenAuth<WithCookie>,
+    id: u32,
+) -> templates::Template {
     templates::Template::render("table-not-found", GeneralContext::from(config.inner()));
     todo!()
 }

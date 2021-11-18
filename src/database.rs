@@ -79,6 +79,13 @@ impl VaultDb {
             .await
     }
 
+    pub async fn fetch_password(&self, password: &str) -> sqlx::Result<Option<Password>> {
+        sqlx::query_as::<_, Password>("SELECT * FROM vault_auth WHERE password_hash = SHA2(?, 256)")
+            .bind(password)
+            .fetch_optional(&self.0)
+            .await
+    }
+
     pub async fn insert_password(&self, password: &str, admin: bool) -> QueryResult {
         sqlx::query("INSERT INTO vault_auth (password_hash, admin) VALUES (SHA2(?, 256), ?)")
             .bind(password)
