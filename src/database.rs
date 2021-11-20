@@ -33,10 +33,12 @@ impl VaultDb {
     }
 
     pub async fn init(db_url: &str) -> Result<Self, sqlx::Error> {
-        let db: Self = mysql::MySqlPoolOptions::new()
-            .connect(db_url)
-            .await
-            .map(Self)?;
+        let db: Self = log_and_return(
+            mysql::MySqlPoolOptions::new()
+                .connect(db_url)
+                .await
+                .map(Self)
+        )?;
         db.setup().await?;
         Ok(db)
     }
@@ -52,45 +54,64 @@ impl VaultDb {
     }
 
     pub async fn create_index_table(&self) -> QueryResult {
-        sqlx::query("CREATE TABLE IF NOT EXISTS vault_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL UNIQUE, ui_name varchar(64) NOT NULL UNIQUE)")
+        log_and_return(
+            sqlx::query("CREATE TABLE IF NOT EXISTS vault_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL UNIQUE, ui_name varchar(64) NOT NULL UNIQUE)")
             .execute(&self.0)
             .await
+        )
     }
 
     pub async fn create_auth_table(&self) -> QueryResult {
-        sqlx::query("CREATE TABLE IF NOT EXISTS vault_auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, password_hash varchar(64) NOT NULL UNIQUE, admin BOOLEAN NOT NULL)")
-            .execute(&self.0)
-            .await
+        log_and_return(
+            sqlx::query("CREATE TABLE IF NOT EXISTS vault_auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, password_hash varchar(64) NOT NULL UNIQUE, admin BOOLEAN NOT NULL)")
+                .execute(&self.0)
+                .await
+        )
     }
 
     pub async fn create_vault_table(&self, table_name: &str) -> QueryResult {
-        sqlx::query(
-            "CREATE TABLE IF NOT EXISTS ? (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, number varchar(256), password varchar(256))",
+        log_and_return(
+            sqlx::query(
+                "CREATE TABLE IF NOT EXISTS ? (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, number varchar(256), password varchar(256))",
+            )
+            .bind(table_name)
+            .execute(&self.0)
+            .await
         )
-        .bind(table_name)
-        .execute(&self.0)
-        .await
     }
 
     pub async fn fetch_all_password(&self, only_admin: bool) -> sqlx::Result<Vec<Password>> {
-        sqlx::query_as::<_, Password>("SELECT * FROM vault_auth WHERE IF(?, admin = 1, true)")
-            .bind(only_admin)
-            .fetch_all(&self.0)
-            .await
+        log_and_return(
+            sqlx::query_as::<_, Password>("SELECT * FROM vault_auth WHERE IF(?, admin = 1, true)")
+                .bind(only_admin)
+                .fetch_all(&self.0)
+                .await
+        )
     }
 
     pub async fn fetch_password(&self, password: &str) -> sqlx::Result<Option<Password>> {
-        sqlx::query_as::<_, Password>("SELECT * FROM vault_auth WHERE password_hash = SHA2(?, 256)")
-            .bind(password)
-            .fetch_optional(&self.0)
-            .await
+        log_and_return(
+            sqlx::query_as::<_, Password>("SELECT * FROM vault_auth WHERE password_hash = SHA2(?, 256)")
+                .bind(password)
+                .fetch_optional(&self.0)
+                .await
+        )
     }
 
     pub async fn insert_password(&self, password: &str, admin: bool) -> QueryResult {
-        sqlx::query("INSERT INTO vault_auth (password_hash, admin) VALUES (SHA2(?, 256), ?)")
-            .bind(password)
-            .bind(admin)
-            .execute(&self.0)
-            .await
+        log_and_return(
+            sqlx::query("INSERT INTO vault_auth (password_hash, admin) VALUES (SHA2(?, 256), ?)")
+                .bind(password)
+                .bind(admin)
+                .execute(&self.0)
+                .await
+        )
     }
+}
+
+fn log_and_return<T>(result: sqlx::Result<T>) -> sqlx::Result<T> {
+    if let Err(ref e) = result {
+        rocket::error!("Database error: {}", e);
+    }
+    result
 }

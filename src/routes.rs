@@ -25,3 +25,10 @@ impl From<&VaultConfig> for GeneralContext {
             .unwrap_or_default()
     }
 }
+
+#[derive(rocket::response::Responder)]
+enum VaultResponse<T> {
+    Ok(T),
+    Redirect(response::Redirect),
+    Err(http::Status),
+}
