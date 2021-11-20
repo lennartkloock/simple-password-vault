@@ -12,8 +12,6 @@ pub fn get_routes() -> Vec<rocket::Route> {
     ]
 }
 
-type AuthResponse<T> = Result<T, http::Status>;
-
 #[rocket::get("/login")]
 async fn login(
     config: &rocket::State<VaultConfig>,
