@@ -1,4 +1,5 @@
 # 🔐 Simple Password Vault
+[![CI](https://github.com/lennartkloock/simple-password-vault/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/lennartkloock/simple-password-vault/actions/workflows/ci.yml)
 
 🚧 In development 🚧
 
