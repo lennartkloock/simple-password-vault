@@ -23,8 +23,7 @@ async fn vault(
 ) -> VaultResponse<templates::Template> {
     if auth.is_err() {
         VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
-    }
-    else {
+    } else {
         VaultResponse::Ok(templates::Template::render(
             "vault",
             GeneralContext::from(config.inner()),
@@ -40,8 +39,7 @@ async fn vault_table_id(
 ) -> VaultResponse<templates::Template> {
     if auth.is_err() {
         VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
-    }
-    else {
+    } else {
         VaultResponse::Ok(templates::Template::render(
             "table-not-found",
             GeneralContext::from(config.inner()),

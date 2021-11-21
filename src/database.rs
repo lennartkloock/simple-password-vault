@@ -37,7 +37,7 @@ impl VaultDb {
             mysql::MySqlPoolOptions::new()
                 .connect(db_url)
                 .await
-                .map(Self)
+                .map(Self),
         )?;
         db.setup().await?;
         Ok(db)
@@ -85,16 +85,18 @@ impl VaultDb {
             sqlx::query_as::<_, Password>("SELECT * FROM vault_auth WHERE IF(?, admin = 1, true)")
                 .bind(only_admin)
                 .fetch_all(&self.0)
-                .await
+                .await,
         )
     }
 
     pub async fn fetch_password(&self, password: &str) -> sqlx::Result<Option<Password>> {
         log_and_return(
-            sqlx::query_as::<_, Password>("SELECT * FROM vault_auth WHERE password_hash = SHA2(?, 256)")
-                .bind(password)
-                .fetch_optional(&self.0)
-                .await
+            sqlx::query_as::<_, Password>(
+                "SELECT * FROM vault_auth WHERE password_hash = SHA2(?, 256)",
+            )
+            .bind(password)
+            .fetch_optional(&self.0)
+            .await,
         )
     }
 
@@ -104,7 +106,7 @@ impl VaultDb {
                 .bind(password)
                 .bind(admin)
                 .execute(&self.0)
-                .await
+                .await,
         )
     }
 }
