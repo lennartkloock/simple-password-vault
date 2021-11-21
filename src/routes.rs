@@ -1,4 +1,5 @@
 use crate::VaultConfig;
+use rocket::http;
 
 pub mod authentication;
 pub mod vault;
@@ -30,5 +31,16 @@ impl From<&VaultConfig> for GeneralContext {
 enum VaultResponse<T> {
     Ok(T),
     Redirect(response::Redirect),
+    FlashRedirect(response::Flash<response::Redirect>),
     Err(http::Status),
+}
+
+impl<T> VaultResponse<T> {
+    fn flash_error_redidrect_to<U: TryInto<http::uri::Reference<'static>>, M: Into<String>>(uri: U, message: M) -> Self<T> {
+        Self::FlashRedirect(response::Flash:error(response::Redirect::to(uri), message))
+    }
+
+    fn redirect_to<U: TryInto<http::uri::Reference<'static>>>(uri: U) -> Self<T> {
+        Self::Redirect(response::Redirect::to(uri))
+    }
 }

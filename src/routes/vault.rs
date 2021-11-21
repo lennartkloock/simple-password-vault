@@ -22,7 +22,7 @@ async fn vault(
     auth: TokenAuthResult<WithCookie>,
 ) -> VaultResponse<templates::Template> {
     if auth.is_err() {
-        VaultResponse::Redirect(response::Redirect::to(rocket::uri!(super::authentication::login)))
+        VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
     }
     else {
         VaultResponse::Ok(templates::Template::render(
@@ -39,7 +39,7 @@ async fn vault_table_id(
     id: u32,
 ) -> VaultResponse<templates::Template> {
     if auth.is_err() {
-        VaultResponse::Redirect(response::Redirect::to(rocket::uri!(super::authentication::login)))
+        VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
     }
     else {
         VaultResponse::Ok(templates::Template::render(

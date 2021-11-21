@@ -12,6 +12,20 @@ pub fn get_routes() -> Vec<rocket::Route> {
     ]
 }
 
+enum AuthError {
+    WrongPassword,
+    PasswordTooShort,
+}
+
+impl From<AuthError> for String {
+    fn from(error: AuthError) -> Self {
+        match error {
+            WrongPassword => "wrong_pass",
+            PasswordTooShort => "short_pass",
+        }.to_string()
+    }
+}
+
 #[rocket::get("/login")]
 async fn login(
     config: &rocket::State<VaultConfig>,
@@ -20,9 +34,9 @@ async fn login(
     match database.fetch_all_password(true).await {
         Ok(passwords) => {
             if passwords.is_empty() {
-                VaultResponse::Redirect(response::Redirect::to(rocket::uri!(
+                VaultResponse::redirect_to(rocket::uri!(
                     new_admin_password
-                )))
+                ))
             }
             else {
                 VaultResponse::Ok(templates::Template::render(
@@ -63,9 +77,9 @@ async fn login_submit(
                         .http_only(true)
                         .finish(),
                 );
-                VaultResponse::Redirect(response::Redirect::to(rocket::uri!(super::vault::vault)))
+                VaultResponse::redirect_to(rocket::uri!(super::vault::vault))
             } else {
-                VaultResponse::Redirect(response::Redirect::to(rocket::uri!(login)))
+                VaultResponse::flash_error_redirect_to(rocket::uri!(login), AuthError::WrongPassword)
             }
         },
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
@@ -86,7 +100,7 @@ async fn new_admin_password(
                 ))
             }
             else {
-                VaultResponse::Redirect(response::Redirect::to(rocket::uri!(login)))
+                VaultResponse::redirect_to(rocket::uri!(login))
             }
         },
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
@@ -101,6 +115,7 @@ struct NewAdminPasswordData<'a> {
     _password_confirm: &'a str,
 }
 
+// TODO: Fix this route
 #[rocket::post("/new-admin-password", data = "<form>")]
 async fn new_admin_password_form(
     database: &rocket::State<VaultDb>,
@@ -113,7 +128,7 @@ async fn new_admin_password_form(
                     database
                         .insert_password(data.password, true)
                         .await
-                        .map(|_| VaultResponse::Redirect(response::Redirect::to(rocket::uri!(login))))
+                        .map(|_| VaultResponse::redirect_to(rocket::uri!(login)))
                         .map_err(|_| VaultResponse::Err(http::Status::InternalServerError))
                 } else {
                     Err(Ok(form
@@ -123,7 +138,7 @@ async fn new_admin_password_form(
                 }
             }
             else {
-                VaultResponse::Redirect(response::Redirect::to(rocket::uri!(login)))
+                VaultResponse::redirect_to(rocket::uri!(login))
             }
         },
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
