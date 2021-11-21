@@ -1,7 +1,7 @@
 use crate::routes::{GeneralContext, VaultResponse};
 use crate::sessions::{SafeSessionManager, SESSION_TOKEN_COOKIE};
 use crate::{templates, VaultConfig, VaultDb};
-use rocket::{form, http, response};
+use rocket::{form, http};
 
 pub fn get_routes() -> Vec<rocket::Route> {
     rocket::routes![
@@ -12,20 +12,6 @@ pub fn get_routes() -> Vec<rocket::Route> {
     ]
 }
 
-enum AuthError {
-    WrongPassword,
-    PasswordTooShort,
-}
-
-impl From<AuthError> for String {
-    fn from(error: AuthError) -> Self {
-        match error {
-            WrongPassword => "wrong_pass",
-            PasswordTooShort => "short_pass",
-        }.to_string()
-    }
-}
-
 #[rocket::get("/login")]
 async fn login(
     config: &rocket::State<VaultConfig>,
@@ -34,17 +20,14 @@ async fn login(
     match database.fetch_all_password(true).await {
         Ok(passwords) => {
             if passwords.is_empty() {
-                VaultResponse::redirect_to(rocket::uri!(
-                    new_admin_password
-                ))
-            }
-            else {
+                VaultResponse::redirect_to(rocket::uri!(new_admin_password))
+            } else {
                 VaultResponse::Ok(templates::Template::render(
                     "login",
                     GeneralContext::from(config.inner()),
                 ))
             }
-        },
+        }
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
     }
 }
@@ -79,9 +62,9 @@ async fn login_submit(
                 );
                 VaultResponse::redirect_to(rocket::uri!(super::vault::vault))
             } else {
-                VaultResponse::flash_error_redirect_to(rocket::uri!(login), AuthError::WrongPassword)
+                VaultResponse::flash_error_redirect_to(rocket::uri!(login), "wrong_password")
             }
-        },
+        }
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
     }
 }
@@ -98,11 +81,10 @@ async fn new_admin_password(
                     "new-admin-password",
                     GeneralContext::from(config.inner()),
                 ))
-            }
-            else {
+            } else {
                 VaultResponse::redirect_to(rocket::uri!(login))
             }
-        },
+        }
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
     }
 }
@@ -115,7 +97,6 @@ struct NewAdminPasswordData<'a> {
     _password_confirm: &'a str,
 }
 
-// TODO: Fix this route
 #[rocket::post("/new-admin-password", data = "<form>")]
 async fn new_admin_password_form(
     database: &rocket::State<VaultDb>,
@@ -125,22 +106,23 @@ async fn new_admin_password_form(
         Ok(passwords) => {
             if passwords.is_empty() {
                 if let Some(ref data) = form.value {
-                    database
-                        .insert_password(data.password, true)
-                        .await
-                        .map(|_| VaultResponse::redirect_to(rocket::uri!(login)))
-                        .map_err(|_| VaultResponse::Err(http::Status::InternalServerError))
+                    if database.insert_password(data.password, true).await.is_ok() {
+                        VaultResponse::redirect_to(rocket::uri!(login))
+                    } else {
+                        VaultResponse::Err(http::Status::InternalServerError)
+                    }
                 } else {
-                    Err(Ok(form
-                        .context
-                        .field_errors("password-confirm")
-                        .fold(String::new(), |i, e| format!("{:?}\n{}", e, i))))
+                    VaultResponse::flash_error_redirect_to(
+                        rocket::uri!(new_admin_password),
+                        form.context
+                            .field_errors("password-confirm")
+                            .fold(String::new(), |i, e| format!("{:?}\n{}", e, i)),
+                    )
                 }
-            }
-            else {
+            } else {
                 VaultResponse::redirect_to(rocket::uri!(login))
             }
-        },
+        }
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
     }
 }
