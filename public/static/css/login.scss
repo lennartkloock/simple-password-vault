@@ -1,9 +1,12 @@
 @use "layout";
 
 .password-field {
-    @extend .big-margin;
-    margin-left: 0;
-    margin-right: 0;
+    @extend .bottom-margin;
+    margin-top: layout.$small-space;
     width: 100%;
     max-width: 100%;
+}
+
+.bottom-margin {
+    margin-bottom: layout.$small-space;
 }

@@ -1,5 +1,5 @@
 use crate::VaultConfig;
-use rocket::{http, response};
+use rocket::{http, request, response};
 
 pub mod authentication;
 pub mod vault;
@@ -24,6 +24,26 @@ impl From<&VaultConfig> for GeneralContext {
             .clone()
             .map(|name| GeneralContext { name })
             .unwrap_or_default()
+    }
+}
+
+#[derive(Default, serde::Serialize)]
+struct FlashContext {
+    general: GeneralContext,
+    kind: Option<String>,
+    message: Option<String>,
+}
+
+impl FlashContext {
+    fn with_general_context(mut self, general: GeneralContext) -> Self {
+        self.general = general;
+        self
+    }
+
+    fn with_optional_flash(mut self, flash: Option<request::FlashMessage>) -> Self {
+        self.kind = flash.as_ref().map(|f| f.kind().to_string());
+        self.message = flash.as_ref().map(|f| f.message().to_string());
+        self
     }
 }
 

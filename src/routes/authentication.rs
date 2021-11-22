@@ -1,7 +1,7 @@
-use crate::routes::{GeneralContext, VaultResponse};
+use crate::routes::{FlashContext, GeneralContext, VaultResponse};
 use crate::sessions::{SafeSessionManager, SESSION_TOKEN_COOKIE};
 use crate::{templates, VaultConfig, VaultDb};
-use rocket::{form, http};
+use rocket::{form, http, request};
 
 pub fn get_routes() -> Vec<rocket::Route> {
     rocket::routes![
@@ -16,16 +16,17 @@ pub fn get_routes() -> Vec<rocket::Route> {
 async fn login(
     config: &rocket::State<VaultConfig>,
     database: &rocket::State<VaultDb>,
+    flash: Option<request::FlashMessage<'_>>,
 ) -> VaultResponse<templates::Template> {
     match database.fetch_all_password(true).await {
         Ok(passwords) => {
             if passwords.is_empty() {
                 VaultResponse::redirect_to(rocket::uri!(new_admin_password))
             } else {
-                VaultResponse::Ok(templates::Template::render(
-                    "login",
-                    GeneralContext::from(config.inner()),
-                ))
+                let context = FlashContext::default()
+                    .with_general_context(GeneralContext::from(config.inner()))
+                    .with_optional_flash(flash);
+                VaultResponse::Ok(templates::Template::render("login", context))
             }
         }
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
@@ -62,7 +63,10 @@ async fn login_submit(
                 );
                 VaultResponse::redirect_to(rocket::uri!(super::vault::vault))
             } else {
-                VaultResponse::flash_error_redirect_to(rocket::uri!(login), "wrong_password")
+                VaultResponse::flash_error_redirect_to(
+                    rocket::uri!(login),
+                    "The given password is wrong. Please try again.",
+                )
             }
         }
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
@@ -73,14 +77,15 @@ async fn login_submit(
 async fn new_admin_password(
     config: &rocket::State<VaultConfig>,
     database: &rocket::State<VaultDb>,
+    flash: Option<request::FlashMessage<'_>>,
 ) -> VaultResponse<templates::Template> {
     match database.fetch_all_password(true).await {
         Ok(passwords) => {
             if passwords.is_empty() {
-                VaultResponse::Ok(templates::Template::render(
-                    "new-admin-password",
-                    GeneralContext::from(config.inner()),
-                ))
+                let context = FlashContext::default()
+                    .with_general_context(GeneralContext::from(config.inner()))
+                    .with_optional_flash(flash);
+                VaultResponse::Ok(templates::Template::render("new-admin-password", context))
             } else {
                 VaultResponse::redirect_to(rocket::uri!(login))
             }
@@ -116,7 +121,7 @@ async fn new_admin_password_form(
                         rocket::uri!(new_admin_password),
                         form.context
                             .field_errors("password-confirm")
-                            .fold(String::new(), |i, e| format!("{:?}\n{}", e, i)),
+                            .fold(String::new(), |i, e| format!("{:?}\n{}", e.kind, i)), //TODO: Improve error handling
                     )
                 }
             } else {

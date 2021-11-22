@@ -1,0 +1,24 @@
+@use "layout";
+
+.box {
+    width: 100%;
+    padding: layout.$small-space layout.$small-space / 2 layout.$small-space layout.$small-space / 2;
+
+    border-radius: 10px;
+}
+
+.error-box {
+    @extend .box;
+    background-color: #cc0000;
+    color: white;
+}
+
+.warning-box {
+    @extend .box;
+    background-color: #ff6b46;
+    color: white;
+}
+
+.big-button {
+    padding: 6px 16px 6px 16px;
+}
