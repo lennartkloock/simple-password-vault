@@ -1,5 +1,6 @@
 @use "vars";
 @use "layout";
+@use "ui";
 @use "nav";
 @use "footer";
 @use "action-bar";
@@ -16,8 +17,4 @@ a {
 
 img {
     filter: invert(1);
-}
-
-.big-button {
-    padding: 6px 16px 6px 16px;
 }

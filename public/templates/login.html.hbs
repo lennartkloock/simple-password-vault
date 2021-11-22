@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {{> head name=name page="Login" }}
+    {{> head name=general.name page="Login" }}
     <link href="css/login.css" rel="stylesheet">
 </head>
 <body>
-{{> navigation page="Login" }}
+{{> navigation name=general.name page="Login" }}
 <div class="center-container full-height">
     <div class="center-dialogue">
         <h1>Login</h1>
-        <p>Please provide your password below to continue</p>
+        <p class="bottom-margin">Please provide your password below to continue</p>
+        {{> error-box }}
         <form method="post">
             <input type="password" name="password" placeholder="Password" minlength="8" class="password-field" required>
             <br>
