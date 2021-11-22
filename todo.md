@@ -12,6 +12,7 @@
   * [ ] Export data as csv
 
 ### API
+* [ ] OpenAPI specification
 * [ ] Create token (Login)
 * [ ] Delete token (Logout)
 * [ ] Tables
