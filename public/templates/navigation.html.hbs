@@ -9,7 +9,9 @@
     </div>
     <div class="center-container small-side-margin">
         {{#if logout}}
-            <img src="images/streamline-logout.svg" alt="Theme" width="32" height="32">
+            <form action="/logout" method="post">
+                <input type="image" src="images/streamline-logout.svg" alt="Theme" width="32" height="32">
+            </form>
         {{/if}}
     </div>
 </nav>

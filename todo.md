@@ -1,9 +1,9 @@
 ## To-Do
 
 ### UI
-* [x] Create first admin account
+* [x] Create admin account on first usage
 * [x] Login
-* [ ] Logout
+* [x] Logout
 * [ ] Tables
   * [ ] Create
   * [ ] Delete

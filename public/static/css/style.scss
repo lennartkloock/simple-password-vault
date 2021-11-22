@@ -15,6 +15,6 @@ a {
     color: inherit;
 }
 
-img {
+input[type=image], img {
     filter: invert(1);
 }

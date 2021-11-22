@@ -63,6 +63,16 @@ impl<T> VaultResponse<T> {
         Self::FlashRedirect(response::Flash::error(response::Redirect::to(uri), message))
     }
 
+    fn flash_success_redirect_to<U: TryInto<http::uri::Reference<'static>>, M: Into<String>>(
+        uri: U,
+        message: M,
+    ) -> Self {
+        Self::FlashRedirect(response::Flash::success(
+            response::Redirect::to(uri),
+            message,
+        ))
+    }
+
     fn redirect_to<U: TryInto<http::uri::Reference<'static>>>(uri: U) -> Self {
         Self::Redirect(response::Redirect::to(uri))
     }

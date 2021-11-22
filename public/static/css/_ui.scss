@@ -19,6 +19,12 @@
     color: white;
 }
 
+.success-box {
+    @extend .box;
+    background-color: green;
+    color: white;
+}
+
 .big-button {
     padding: 6px 16px 6px 16px;
 }

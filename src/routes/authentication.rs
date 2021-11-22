@@ -7,6 +7,7 @@ pub fn get_routes() -> Vec<rocket::Route> {
     rocket::routes![
         login,
         login_submit,
+        logout_submit,
         new_admin_password,
         new_admin_password_form
     ]
@@ -65,12 +66,18 @@ async fn login_submit(
             } else {
                 VaultResponse::flash_error_redirect_to(
                     rocket::uri!(login),
-                    "The given password is wrong. Please try again.",
+                    "The given password is wrong, please try again",
                 )
             }
         }
         Err(_) => VaultResponse::Err(http::Status::InternalServerError),
     }
+}
+
+#[rocket::post("/logout")]
+async fn logout_submit(cookies: &http::CookieJar<'_>) -> VaultResponse<()> {
+    cookies.remove(http::Cookie::named(SESSION_TOKEN_COOKIE));
+    VaultResponse::flash_success_redirect_to(rocket::uri!(login), "Successfully logged out")
 }
 
 #[rocket::get("/new-admin-password")]
