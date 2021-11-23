@@ -18,8 +18,8 @@ async fn index(cookies: &http::CookieJar<'_>) -> response::Redirect {
 
 #[rocket::get("/vault")]
 async fn vault(
-    config: &rocket::State<VaultConfig>,
     auth: TokenAuthResult<WithCookie>,
+    config: &rocket::State<VaultConfig>,
 ) -> VaultResponse<templates::Template> {
     if auth.is_err() {
         VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
@@ -33,9 +33,9 @@ async fn vault(
 
 #[rocket::get("/vault?<id>")]
 async fn vault_table_id(
-    config: &rocket::State<VaultConfig>,
-    auth: TokenAuthResult<WithCookie>,
     id: u32,
+    auth: TokenAuthResult<WithCookie>,
+    config: &rocket::State<VaultConfig>,
 ) -> VaultResponse<templates::Template> {
     if auth.is_err() {
         VaultResponse::redirect_to(rocket::uri!(super::authentication::login))

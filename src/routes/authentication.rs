@@ -41,11 +41,11 @@ struct LoginFormData<'a> {
 
 #[rocket::post("/login", data = "<form>")]
 async fn login_submit(
-    config: &rocket::State<VaultConfig>,
-    database: &rocket::State<VaultDb>,
-    session_manager: &rocket::State<SafeSessionManager>,
-    cookies: &http::CookieJar<'_>,
     form: form::Form<LoginFormData<'_>>,
+    cookies: &http::CookieJar<'_>,
+    config: &rocket::State<VaultConfig>,
+    session_manager: &rocket::State<SafeSessionManager>,
+    database: &rocket::State<VaultDb>,
 ) -> VaultResponse<()> {
     match database.fetch_password(form.password).await {
         Ok(password) => {
@@ -111,8 +111,8 @@ struct NewAdminPasswordData<'a> {
 
 #[rocket::post("/new-admin-password", data = "<form>")]
 async fn new_admin_password_form(
-    database: &rocket::State<VaultDb>,
     form: form::Form<form::Contextual<'_, NewAdminPasswordData<'_>>>,
+    database: &rocket::State<VaultDb>,
 ) -> VaultResponse<String> {
     match database.fetch_all_password(true).await {
         Ok(passwords) => {
