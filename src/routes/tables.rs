@@ -35,7 +35,7 @@ async fn add_submit(
     _auth: TokenAuth<WithCookie>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<()> {
-    match database.create_vault_table(form.name).await {
+    match database.create_vault_table(&form.name, &form.extra).await {
         (Ok(_), Some(id)) => {
             VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(id as u32)))
         }
