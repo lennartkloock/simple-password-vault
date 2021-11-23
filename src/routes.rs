@@ -2,6 +2,7 @@ use crate::VaultConfig;
 use rocket::{http, request, response};
 
 pub mod authentication;
+pub mod tables;
 pub mod vault;
 
 #[derive(serde::Serialize)]

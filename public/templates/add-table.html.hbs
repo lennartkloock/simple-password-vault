@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{> head name=general.name page="Add Table" }}
+    <link href="css/add-table.css" rel="stylesheet">
+</head>
+<body>
+{{> navigation name=general.name page="Add Table" logout=true }}
+<div class="center-container full-height">
+    <div class="center-dialogue">
+        <form method="post">
+            <div class="flex-between small-margin">
+                <label for="name-input">Name</label>
+                <input type="text" id="name-input" name="name" placeholder="Name" required>
+            </div>
+            <div class="flex-between small-margin">
+                <label for="extra-input">Extra columns</label>
+                <input type="number" id="extra-input" value="0" min="0" max="20" required
+                       oninput="onInput()">
+            </div>
+            <ol id="extra-list" class="small-margin"></ol>
+            <p class="small-margin" style="font-size: small; color: gray">Every table contains one password column</p>
+            {{> error-box }}
+            <input type="submit" value="Create Table" id="submit-button" class="small-margin big-button">
+        </form>
+    </div>
+</div>
+</body>
+<script type="application/javascript">
+    const list = document.getElementById("extra-list");
+
+    function getAllValues() {
+        let values = [];
+        let lis = list.getElementsByTagName("li");
+        for (let i = 0; i < lis.length; i++) {
+            values.push(lis[i].getElementsByTagName("input").item(0).value);
+        }
+        return values;
+    }
+
+    function onInput() {
+        let extraInput = document.getElementById("extra-input");
+        let newValue = extraInput.value;
+        let maxValue = parseInt(extraInput.max);
+        if (newValue >= maxValue) {
+            extraInput.value = maxValue;
+            newValue = maxValue;
+        }
+
+        let values = getAllValues();
+        list.innerHTML = "";
+
+        for (let i = 0; i < newValue; i++) {
+            let input = document.createElement("input");
+            input.type = "text";
+            input.name = "extra[" + i + "]";
+            input.placeholder = "Column name";
+            input.required = true;
+            if (values[i]) {
+                input.value = values[i];
+            }
+
+            let li = document.createElement("li");
+            li.appendChild(input);
+            list.appendChild(li);
+        }
+    }
+
+    onInput();
+</script>
+</html>

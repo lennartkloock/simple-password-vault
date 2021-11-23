@@ -23,6 +23,7 @@ async fn main() {
         .attach(sessions::SessionManager::fairing())
         .attach(templates::Template::fairing())
         .mount("/", routes::authentication::get_routes())
+        .mount("/", routes::tables::get_routes())
         .mount("/", routes::vault::get_routes());
 
     match rocket.figment().extract::<VaultConfig>() {

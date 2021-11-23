@@ -1,0 +1,21 @@
+@use "layout";
+
+#submit-button {
+    width: calc(100% - #{layout.$small-space} * 2); //Full width minus small margin on both sides
+}
+
+#extra-input {
+    width: 50px;
+}
+
+.flex-between {
+    @include layout.flex-container(space-between);
+}
+
+.small-margin {
+    margin: layout.$small-space;
+}
+
+ol {
+    text-align: right;
+}

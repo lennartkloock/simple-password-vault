@@ -55,7 +55,7 @@ impl VaultDb {
 
     pub async fn create_index_table(&self) -> QueryResult {
         log_and_return(
-            sqlx::query("CREATE TABLE IF NOT EXISTS vault_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL UNIQUE, ui_name varchar(64) NOT NULL UNIQUE)")
+            sqlx::query("CREATE TABLE IF NOT EXISTS vault_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, ui_name varchar(64) NOT NULL UNIQUE)")
             .execute(&self.0)
             .await
         )
@@ -69,15 +69,27 @@ impl VaultDb {
         )
     }
 
-    pub async fn create_vault_table(&self, table_name: &str) -> QueryResult {
+    async fn create_index_entry(&self, table_name: &str) -> QueryResult {
         log_and_return(
-            sqlx::query(
-                "CREATE TABLE IF NOT EXISTS ? (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, number varchar(256), password varchar(256))",
-            )
-            .bind(table_name)
-            .execute(&self.0)
-            .await
+            sqlx::query("INSERT INTO vault_index (ui_name) VALUES (?)")
+                .bind(table_name)
+                .execute(&self.0)
+                .await,
         )
+    }
+
+    pub async fn create_vault_table(&self, table_name: &str) -> (QueryResult, Option<u64>) {
+        let result = self.create_index_entry(table_name).await;
+        if let Ok(r) = result {
+            let id = r.last_insert_id();
+            let statement = format!("CREATE TABLE IF NOT EXISTS vault_{} (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, number varchar(256), password varchar(256))", id);
+            (
+                log_and_return(sqlx::query(&statement).execute(&self.0).await),
+                Some(id),
+            )
+        } else {
+            (result, None)
+        }
     }
 
     pub async fn fetch_all_password(&self, only_admin: bool) -> sqlx::Result<Vec<Password>> {
