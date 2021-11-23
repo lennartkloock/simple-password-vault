@@ -5,7 +5,7 @@
 * [x] Login
 * [x] Logout
 * [ ] Tables
-  * [ ] Create
+  * [x] Create
   * [ ] Delete
   * [ ] Add data
   * [ ] Remove data
