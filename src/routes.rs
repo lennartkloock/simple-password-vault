@@ -40,6 +40,10 @@ impl FlashContext {
         self
     }
 
+    fn with_config(self, config: &VaultConfig) -> Self {
+        self.with_general_context(GeneralContext::from(config))
+    }
+
     fn with_optional_flash(mut self, flash: Option<request::FlashMessage>) -> Self {
         self.kind = flash.as_ref().map(|f| f.kind().to_string());
         self.message = flash.as_ref().map(|f| f.message().to_string());

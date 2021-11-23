@@ -1,4 +1,4 @@
-use crate::routes::{FlashContext, GeneralContext, VaultResponse};
+use crate::routes::{FlashContext, VaultResponse};
 use crate::sessions::{SafeSessionManager, SESSION_TOKEN_COOKIE};
 use crate::{templates, VaultConfig, VaultDb};
 use rocket::{form, http, request};
@@ -25,7 +25,7 @@ async fn login(
                 VaultResponse::redirect_to(rocket::uri!(new_admin_password))
             } else {
                 let context = FlashContext::default()
-                    .with_general_context(GeneralContext::from(config.inner()))
+                    .with_config(config)
                     .with_optional_flash(flash);
                 VaultResponse::Ok(templates::Template::render("login", context))
             }
@@ -90,7 +90,7 @@ async fn new_admin_password(
         Ok(passwords) => {
             if passwords.is_empty() {
                 let context = FlashContext::default()
-                    .with_general_context(GeneralContext::from(config.inner()))
+                    .with_config(config)
                     .with_optional_flash(flash);
                 VaultResponse::Ok(templates::Template::render("new-admin-password", context))
             } else {
