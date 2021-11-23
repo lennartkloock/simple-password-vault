@@ -7,6 +7,7 @@
 * [ ] Tables
   * [x] Create
   * [ ] Delete
+  * [ ] View data
   * [ ] Add data
   * [ ] Remove data
   * [ ] Export data as csv
@@ -18,6 +19,7 @@
 * [ ] Tables
   * [ ] Create
   * [ ] Delete
+  * [ ] Fetch data
   * [ ] Add data
   * [ ] Remove data
   * [ ] Export data as csv
