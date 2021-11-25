@@ -1,46 +1,57 @@
-{{#if tables}}
-    <div class="padding-to-nav center-container">
-        <table class="responsive-width">
-            <thead>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{> head name=general.name page="Vault" }}
+    <link href="css/vault.css" rel="stylesheet">
+</head>
+<body>
+{{> navigation name=general.name page="Vault" logout=true }}
+<div class="padding-to-nav center-container">
+    <table class="responsive-width">
+    <thead>
+    <tr>
+        <th colspan="1000" class="bottom-border">
+            <div class="space-between-container">
+                <form action="/vault" method="get">
+                    <select name="id" onchange="this.form.submit();">
+                        {{#each tables}}
+                            <option value="{{this.id}}"
+                                    {{#if this.selected}}selected{{/if}}>{{this.name}}</option>
+                        {{/each}}
+                    </select>
+                </form>
+                <form action="/edit" method="get">
+                    {{#each tables}}
+                        {{#if this.selected}}
+                            <input type="hidden" name="id" value="{{this.id}}">
+                        {{/if}}
+                    {{/each}}
+                    <input type="submit" value="Edit table">
+                </form>
+            </div>
+        </th>
+    </tr>
+        {{#each tables}}
+            {{#if this.selected}}
             <tr>
-                <th colspan="3" class="bottom-border">
-                    <div class="space-between-container">
-                        <form action="/vault" method="get">
-                            <select name="id" onchange="this.form.submit();">
-                                {{#each tables}}
-                                    <option value="{{this.id}}"
-                                            {{#if this.selected}}selected{{/if}}>{{this.name}}</option>
-                                {{/each}}
-                            </select>
-                        </form>
-                        <form action="/edit" method="get">
-                            <input type="hidden" name="id" value="{{table_id}}">
-                            <input type="submit" value="Edit table">
-                        </form>
-                    </div>
-                </th>
-            </tr>
-            <tr>
-                {{#each columns}}
+                {{#each this.columns}}
                     <th>{{this}}</th>
                 {{/each}}
             </tr>
             </thead>
             <tbody>
             <tr>
-                {{#each rows}}
-                    {{#each this.data}}
+                {{#each this.data}}
+                    {{#each this}}
                         <td>{{this}}</td>
                     {{/each}}
                 {{/each}}
             </tr>
-            </tbody>
-        </table>
-    </div>
-{{else}}
-    <div class="center-column-container full-height">
-        <h1>No tables...</h1>
-        <p>Press&nbsp;<img src="images/streamline-add-circle.svg" width="16" height="16"
-                      alt="+" id="tooltip-add-circle">&nbsp;in the bottom right corner to create a new table.</p>
-    </div>
-{{/if}}
+            {{/if}}
+        {{/each}}
+    </tbody>
+    </table>
+</div>
+{{> action-bar }}
+</body>
+</html>

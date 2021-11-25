@@ -7,7 +7,7 @@
 * [ ] Tables
   * [x] Create
   * [ ] Delete
-  * [ ] View data
+  * [x] View data
   * [ ] Add data
   * [ ] Remove data
   * [ ] Export data as csv

@@ -1,14 +1,54 @@
 use crate::VaultConfig;
 use rocket::fairing;
-use sqlx::mysql;
+use sqlx::{mysql, Row};
+
+const EXTRA_COLUMN_PREFIX: &str = "extra_";
 
 pub struct VaultDb(mysql::MySqlPool);
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct Password {
-    id: u32,
+    id: u64,
     password_hash: String,
     admin: bool,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct TableIndexEntry {
+    id: u64,
+    ui_name: String,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct ColumnIndexEntry {
+    id: u64,
+    table_name: String,
+    column_name: String,
+    ui_name: String,
+}
+
+#[derive(Debug)]
+pub struct VaultTableEntry {
+    id: u64,
+    number: String,
+    password: String,
+    extra_fields: Vec<String>,
+}
+
+impl From<VaultTableEntry> for Vec<String> {
+    fn from(entry: VaultTableEntry) -> Self {
+        let mut v = vec![entry.number, entry.password];
+        v.extend(entry.extra_fields);
+        v
+    }
+}
+
+#[derive(Debug)]
+pub struct VaultTable {
+    pub id: u64,
+    pub name: String,
+    pub extra_columns: Vec<String>,
+    pub data: Vec<VaultTableEntry>,
 }
 
 type QueryResult = sqlx::Result<sqlx::mysql::MySqlQueryResult>;
@@ -116,11 +156,11 @@ impl VaultDb {
         let result = self.insert_table_index_entry(ui_name).await;
         if let Ok(r) = result {
             let id = r.last_insert_id();
-            let table_name = format!("vault_{}", id);
+            let table_name = gen_vault_table_name(id);
 
             let extra_column_names: Vec<String> = (0..extra.len())
                 .into_iter()
-                .map(|x| format!("extra_{}", x))
+                .map(|x| format!("{}{}", EXTRA_COLUMN_PREFIX, x))
                 .collect();
             for i in 0..extra.len() {
                 let result = self
@@ -141,6 +181,61 @@ impl VaultDb {
             )
         } else {
             (result, None)
+        }
+    }
+
+    async fn fetch_table_index_entry(&self, id: u64) -> sqlx::Result<Option<TableIndexEntry>> {
+        log_and_return(
+            sqlx::query_as::<_, TableIndexEntry>("SELECT * FROM table_index WHERE id = ?")
+                .bind(id)
+                .fetch_optional(&self.0)
+                .await,
+        )
+    }
+
+    async fn fetch_column_index_entry(
+        &self,
+        table_name: &str,
+    ) -> sqlx::Result<Vec<ColumnIndexEntry>> {
+        log_and_return(
+            sqlx::query_as::<_, ColumnIndexEntry>(
+                "SELECT * FROM column_index WHERE table_name = ?",
+            )
+            .bind(table_name)
+            .fetch_all(&self.0)
+            .await,
+        )
+    }
+
+    pub async fn fetch_table(&self, id: u64) -> sqlx::Result<Option<VaultTable>> {
+        if let Some(table_index) = self.fetch_table_index_entry(id).await? {
+            let table_name = gen_vault_table_name(table_index.id);
+            let column_index = self.fetch_column_index_entry(&table_name).await?;
+            let data = sqlx::query(&format!("SELECT * FROM {}", table_name))
+                .fetch_all(&self.0)
+                .await?
+                .into_iter()
+                .map(|r| {
+                    let extra_fields = column_index
+                        .iter()
+                        .map(|c| r.get(&*c.column_name))
+                        .collect();
+                    VaultTableEntry {
+                        id: r.get("id"),
+                        number: r.get("number"),
+                        password: r.get("password"),
+                        extra_fields,
+                    }
+                })
+                .collect();
+            sqlx::Result::Ok(Some(VaultTable {
+                id,
+                name: table_index.ui_name,
+                extra_columns: column_index.into_iter().map(|c| c.ui_name).collect(),
+                data,
+            }))
+        } else {
+            sqlx::Result::Ok(None)
         }
     }
 
@@ -171,6 +266,10 @@ impl VaultDb {
                 .await,
         )
     }
+}
+
+fn gen_vault_table_name(id: u64) -> String {
+    format!("vault_{}", id)
 }
 
 fn log_and_return<T>(result: sqlx::Result<T>) -> sqlx::Result<T> {

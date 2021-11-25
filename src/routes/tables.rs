@@ -37,7 +37,7 @@ async fn add_submit(
 ) -> VaultResponse<()> {
     match database.create_vault_table(form.name, &form.extra).await {
         (Ok(_), Some(id)) => {
-            VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(id as u32)))
+            VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(id)))
         }
         (Err(sqlx::Error::Database(e)), _) => {
             VaultResponse::flash_error_redirect_to(rocket::uri!(add), e.message())
