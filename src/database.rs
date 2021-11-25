@@ -14,9 +14,15 @@ pub struct Password {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-struct TableIndexEntry {
+pub struct TableIndexEntry {
     id: u64,
     ui_name: String,
+}
+
+impl TableIndexEntry {
+    pub fn id(&self) -> u64 {
+        self.id
+    }
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -27,12 +33,22 @@ struct ColumnIndexEntry {
     ui_name: String,
 }
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct VaultTable {
     pub id: u64,
     pub name: String,
     pub extra_columns: Vec<String>,
     pub data: Vec<Vec<String>>,
+}
+
+impl From<TableIndexEntry> for VaultTable {
+    fn from(entry: TableIndexEntry) -> Self {
+        Self {
+            id: entry.id,
+            name: entry.ui_name,
+            ..Self::default()
+        }
+    }
 }
 
 type QueryResult = sqlx::Result<sqlx::mysql::MySqlQueryResult>;
@@ -188,6 +204,14 @@ impl VaultDb {
             .bind(table_name)
             .fetch_all(&self.0)
             .await,
+        )
+    }
+
+    pub async fn fetch_table_index(&self) -> sqlx::Result<Vec<TableIndexEntry>> {
+        log_and_return(
+            sqlx::query_as::<_, TableIndexEntry>("SELECT * FROM table_index")
+                .fetch_all(&self.0)
+                .await,
         )
     }
 

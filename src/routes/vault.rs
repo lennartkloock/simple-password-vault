@@ -23,14 +23,24 @@ async fn index(cookies: &http::CookieJar<'_>) -> response::Redirect {
 async fn vault(
     auth: TokenAuthResult<WithCookie>,
     config: &rocket::State<VaultConfig>,
+    database: &rocket::State<VaultDb>,
 ) -> VaultResponse<templates::Template> {
     if auth.is_err() {
         VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
     } else {
-        VaultResponse::Ok(templates::Template::render(
-            "no-tables",
-            GeneralContext::from(config.inner()),
-        ))
+        match database.fetch_table_index().await {
+            Ok(index) => {
+                if let Some(first) = index.first() {
+                    VaultResponse::redirect_to(rocket::uri!(vault_table_id(first.id())))
+                } else {
+                    VaultResponse::Ok(templates::Template::render(
+                        "no-tables",
+                        GeneralContext::from(config.inner()),
+                    ))
+                }
+            }
+            Err(_) => VaultResponse::Err(http::Status::InternalServerError),
+        }
     }
 }
 
@@ -50,7 +60,7 @@ impl From<VaultTable> for TableContextTable {
         Self {
             id: table.id,
             name: table.name,
-            selected: true,
+            selected: false,
             columns,
             data: table.data,
         }
@@ -73,8 +83,8 @@ impl TableContext {
         self.with_general_context(GeneralContext::from(config))
     }
 
-    fn with_vault_table(mut self, table: VaultTable) -> Self {
-        self.tables.push(table.into());
+    fn with_tables(mut self, tables: Vec<TableContextTable>) -> Self {
+        self.tables.extend(tables);
         self
     }
 }
@@ -90,20 +100,34 @@ async fn vault_table_id(
         VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
     } else {
         match database.fetch_table(id).await {
-            Ok(t) => VaultResponse::Ok(t.map_or(
-                templates::Template::render(
-                    "table-not-found",
-                    GeneralContext::from(config.inner()),
-                ),
-                |table| {
+            Ok(t) => {
+                let table_index = database.fetch_table_index().await; //Can't be done in map_or closure because of `await`, better solution?
+                VaultResponse::Ok(t.map_or(
                     templates::Template::render(
-                        "table",
-                        TableContext::default()
-                            .with_config(config)
-                            .with_vault_table(table),
-                    )
-                },
-            )),
+                        "table-not-found",
+                        GeneralContext::from(config.inner()),
+                    ),
+                    |table| {
+                        // TODO: I'm sure the following code is pretty ugly but it works for now!
+                        let selected_table_id = table.id;
+                        let mut context_table: TableContextTable = table.into();
+                        context_table.selected = true;
+                        let mut tables = vec![context_table];
+                        if let Ok(index) = table_index {
+                            tables.extend(index.into_iter().filter_map(|e| {
+                                (selected_table_id != e.id())
+                                    .then(|| TableContextTable::from(VaultTable::from(e)))
+                            }));
+                        }
+                        templates::Template::render(
+                            "table",
+                            TableContext::default()
+                                .with_config(config)
+                                .with_tables(tables),
+                        )
+                    },
+                ))
+            }
             Err(_) => VaultResponse::Err(http::Status::InternalServerError),
         }
     }
