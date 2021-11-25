@@ -1,3 +1,5 @@
+//! Contains all routes that create, update or delete (`CUD`) tables
+
 use crate::routes::{FlashContext, VaultResponse};
 use crate::sessions::{TokenAuth, TokenAuthResult, WithCookie};
 use crate::{templates, VaultConfig, VaultDb};

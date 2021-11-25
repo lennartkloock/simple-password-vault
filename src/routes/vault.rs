@@ -1,3 +1,5 @@
+//! Contains all routes that can be used to read tables
+
 use crate::database::VaultTable;
 use crate::routes::{GeneralContext, VaultResponse};
 use crate::sessions::{TokenAuthResult, WithCookie, SESSION_TOKEN_COOKIE};

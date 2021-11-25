@@ -1,3 +1,5 @@
+//! Contains all routes and types that are being used for authentication
+
 use crate::routes::{FlashContext, VaultResponse};
 use crate::sessions::{SafeSessionManager, SESSION_TOKEN_COOKIE};
 use crate::{templates, VaultConfig, VaultDb};
