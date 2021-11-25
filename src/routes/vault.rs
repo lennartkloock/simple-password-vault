@@ -50,7 +50,7 @@ impl From<VaultTable> for TableContextTable {
             name: table.name,
             selected: true,
             columns,
-            data: table.data.into_iter().map(|e| e.into()).collect(),
+            data: table.data,
         }
     }
 }

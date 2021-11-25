@@ -1,6 +1,6 @@
 use crate::VaultConfig;
 use rocket::fairing;
-use sqlx::{mysql, Row};
+use sqlx::mysql;
 
 const EXTRA_COLUMN_PREFIX: &str = "extra_";
 
@@ -28,27 +28,11 @@ struct ColumnIndexEntry {
 }
 
 #[derive(Debug)]
-pub struct VaultTableEntry {
-    id: u64,
-    number: String,
-    password: String,
-    extra_fields: Vec<String>,
-}
-
-impl From<VaultTableEntry> for Vec<String> {
-    fn from(entry: VaultTableEntry) -> Self {
-        let mut v = vec![entry.number, entry.password];
-        v.extend(entry.extra_fields);
-        v
-    }
-}
-
-#[derive(Debug)]
 pub struct VaultTable {
     pub id: u64,
     pub name: String,
     pub extra_columns: Vec<String>,
-    pub data: Vec<VaultTableEntry>,
+    pub data: Vec<Vec<String>>,
 }
 
 type QueryResult = sqlx::Result<sqlx::mysql::MySqlQueryResult>;
@@ -216,16 +200,11 @@ impl VaultDb {
                 .await?
                 .into_iter()
                 .map(|r| {
-                    let extra_fields = column_index
+                    sqlx::Row::columns(&r)
                         .iter()
-                        .map(|c| r.get(&*c.column_name))
-                        .collect();
-                    VaultTableEntry {
-                        id: r.get("id"),
-                        number: r.get("number"),
-                        password: r.get("password"),
-                        extra_fields,
-                    }
+                        .skip(1) //Skip the id column
+                        .map(|c| sqlx::Row::get(&r, sqlx::Column::ordinal(c)))
+                        .collect()
                 })
                 .collect();
             sqlx::Result::Ok(Some(VaultTable {
