@@ -200,6 +200,7 @@ impl VaultDb {
                 .await?
                 .into_iter()
                 .map(|r| {
+                    //This only works when all columns after id are varchars, better solution?
                     sqlx::Row::columns(&r)
                         .iter()
                         .skip(1) //Skip the id column
