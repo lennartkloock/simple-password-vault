@@ -107,7 +107,7 @@ async fn new_admin_password(
 struct NewAdminPasswordData<'a> {
     #[field(validate = len(8..))]
     password: &'a str,
-    #[field(name = "password-confirm", validate = eq(self.password))]
+    #[field(name = "password_confirm", validate = eq(self.password))]
     _password_confirm: &'a str,
 }
 
