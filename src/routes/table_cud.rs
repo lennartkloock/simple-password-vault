@@ -41,13 +41,19 @@ async fn add_submit(
     _auth: TokenAuth<WithCookie>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<()> {
+    let key_ui_name = if form.key_column_name.is_empty() {
+        "Key"
+    } else {
+        form.key_column_name
+    };
+    let password_ui_name = if form.password_column_name.is_empty() {
+        "Password"
+    } else {
+        form.password_column_name
+    };
+
     match database
-        .create_vault_table(
-            form.name,
-            form.key_column_name,
-            form.password_column_name,
-            &form.extra,
-        )
+        .create_vault_table(form.name, key_ui_name, password_ui_name, &form.extra)
         .await
     {
         Ok(id) => VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(id))),
