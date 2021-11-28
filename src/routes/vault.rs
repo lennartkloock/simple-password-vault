@@ -31,7 +31,7 @@ async fn vault(
         match database.fetch_table_index().await {
             Ok(index) => {
                 if let Some(first) = index.first() {
-                    VaultResponse::redirect_to(rocket::uri!(vault_table_id(first.id())))
+                    VaultResponse::redirect_to(rocket::uri!(vault_table_id(first.id)))
                 } else {
                     VaultResponse::Ok(templates::Template::render(
                         "no-tables",
@@ -55,8 +55,16 @@ struct TableContextTable {
 
 impl From<VaultTable> for TableContextTable {
     fn from(table: VaultTable) -> Self {
-        let mut columns = vec!["Number".to_string(), "Password".to_string()];
-        columns.extend(table.extra_columns);
+        let mut columns: Vec<String> = vec!["key_", "password"]
+            .into_iter()
+            .filter_map(|cn| table.column_index.iter().find(|c| c.column_name == cn))
+            .map(|c| c.ui_name.to_string())
+            .collect();
+        columns.extend(table.column_index.iter().filter_map(|c| {
+            c.column_name
+                .starts_with("extra_")
+                .then(|| c.ui_name.to_string())
+        }));
         Self {
             id: table.id,
             name: table.name,
@@ -108,14 +116,15 @@ async fn vault_table_id(
                         GeneralContext::from(config.inner()),
                     ),
                     |table| {
-                        // TODO: I'm sure the following code is pretty ugly but it works for now!
+                        //TODO: I'm sure the following code is pretty ugly but it works for now!
                         let selected_table_id = table.id;
                         let mut context_table: TableContextTable = table.into();
                         context_table.selected = true;
+                        //TODO: Do not throw all tables in one list. Only the selected table should be a TableContextTable
                         let mut tables = vec![context_table];
                         if let Ok(index) = table_index {
                             tables.extend(index.into_iter().filter_map(|e| {
-                                (selected_table_id != e.id())
+                                (selected_table_id != e.id)
                                     .then(|| TableContextTable::from(VaultTable::from(e)))
                             }));
                         }

@@ -15,29 +15,23 @@ pub struct Password {
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct TableIndexEntry {
-    id: u64,
-    ui_name: String,
-}
-
-impl TableIndexEntry {
-    pub fn id(&self) -> u64 {
-        self.id
-    }
+    pub id: u64,
+    pub ui_name: String,
 }
 
 #[derive(Debug, sqlx::FromRow)]
-struct ColumnIndexEntry {
-    id: u64,
-    table_name: String,
-    column_name: String,
-    ui_name: String,
+pub struct ColumnIndexEntry {
+    pub id: u64,
+    pub table_name: String,
+    pub column_name: String,
+    pub ui_name: String,
 }
 
 #[derive(Default, Debug)]
 pub struct VaultTable {
     pub id: u64,
     pub name: String,
-    pub extra_columns: Vec<String>,
+    pub column_index: Vec<ColumnIndexEntry>,
     pub data: Vec<Vec<String>>,
 }
 
@@ -106,7 +100,7 @@ impl VaultDb {
 
     pub async fn create_column_index(&self) -> QueryResult {
         log_and_return(
-            sqlx::query("CREATE TABLE IF NOT EXISTS column_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL, column_name varchar(64) NOT NULL, ui_name varchar(64) NOT NULL UNIQUE)")
+            sqlx::query("CREATE TABLE IF NOT EXISTS column_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL, column_name varchar(64) NOT NULL, ui_name varchar(64) NOT NULL)")
             .execute(&self.0)
             .await
         )
@@ -150,38 +144,37 @@ impl VaultDb {
     pub async fn create_vault_table(
         &self,
         ui_name: &str,
+        key_ui_name: &str,
+        password_ui_name: &str,
         extra: &[&str],
-    ) -> (QueryResult, Option<u64>) {
+    ) -> sqlx::Result<u64> {
         //TODO: Use a transaction
-        let result = self.insert_table_index_entry(ui_name).await;
-        if let Ok(r) = result {
-            let id = r.last_insert_id();
-            let table_name = gen_vault_table_name(id);
+        let id = self
+            .insert_table_index_entry(ui_name)
+            .await?
+            .last_insert_id();
+        let table_name = gen_vault_table_name(id);
 
-            let extra_column_names: Vec<String> = (0..extra.len())
-                .into_iter()
-                .map(|x| format!("{}{}", EXTRA_COLUMN_PREFIX, x))
-                .collect();
-            for i in 0..extra.len() {
-                let result = self
-                    .insert_column_index_entry(&table_name, &extra_column_names[i], extra[i])
-                    .await;
-                if result.is_err() {
-                    return (result, None);
-                }
-            }
+        self.insert_column_index_entry(&table_name, "key_", key_ui_name)
+            .await?;
+        self.insert_column_index_entry(&table_name, "password", password_ui_name)
+            .await?;
 
-            let extra_columns = extra_column_names
-                .iter()
-                .fold(String::new(), |s, e| format!("{}, {} varchar(256)", s, e));
-            let statement = format!("CREATE TABLE IF NOT EXISTS {} (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, number varchar(256), password varchar(256){})", table_name, extra_columns);
-            (
-                log_and_return(sqlx::query(&statement).execute(&self.0).await),
-                Some(id),
-            )
-        } else {
-            (result, None)
+        let extra_column_names: Vec<String> = (0..extra.len())
+            .into_iter()
+            .map(|x| format!("{}{}", EXTRA_COLUMN_PREFIX, x))
+            .collect();
+        for i in 0..extra.len() {
+            self.insert_column_index_entry(&table_name, &extra_column_names[i], extra[i])
+                .await?;
         }
+
+        let extra_columns = extra_column_names
+            .iter()
+            .fold(String::new(), |s, e| format!("{}, {} varchar(256)", s, e));
+        let statement = format!("CREATE TABLE IF NOT EXISTS {} (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, key_ varchar(256), password varchar(256){})", table_name, extra_columns);
+        log_and_return(sqlx::query(&statement).execute(&self.0).await)?;
+        Ok(id)
     }
 
     async fn fetch_table_index_entry(&self, id: u64) -> sqlx::Result<Option<TableIndexEntry>> {
@@ -235,7 +228,7 @@ impl VaultDb {
             sqlx::Result::Ok(Some(VaultTable {
                 id,
                 name: table_index.ui_name,
-                extra_columns: column_index.into_iter().map(|c| c.ui_name).collect(),
+                column_index,
                 data,
             }))
         } else {

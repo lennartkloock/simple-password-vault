@@ -28,6 +28,10 @@ async fn add(
 #[derive(Debug, rocket::FromForm)]
 struct AddTableData<'a> {
     name: &'a str,
+    #[field(default = "Key")]
+    key_column_name: &'a str,
+    #[field(default = "Password")]
+    password_column_name: &'a str,
     extra: Vec<&'a str>,
 }
 
@@ -37,11 +41,17 @@ async fn add_submit(
     _auth: TokenAuth<WithCookie>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<()> {
-    match database.create_vault_table(form.name, &form.extra).await {
-        (Ok(_), Some(id)) => {
-            VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(id)))
-        }
-        (Err(sqlx::Error::Database(e)), _) => {
+    match database
+        .create_vault_table(
+            form.name,
+            form.key_column_name,
+            form.password_column_name,
+            &form.extra,
+        )
+        .await
+    {
+        Ok(id) => VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(id))),
+        Err(sqlx::Error::Database(e)) => {
             VaultResponse::flash_error_redirect_to(rocket::uri!(add), e.message())
         }
         _ => VaultResponse::Err(http::Status::InternalServerError),

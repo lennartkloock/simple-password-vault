@@ -19,3 +19,10 @@
 ol {
     text-align: right;
 }
+
+form {
+    label {
+        text-align: left;
+        margin-right: layout.$small-space;
+    }
+}
