@@ -34,22 +34,37 @@
         {{#each tables}}
             {{#if this.selected}}
             <tr>
+                <th>#</th>
                 {{#each this.columns}}
                     <th>{{this}}</th>
                 {{/each}}
             </tr>
             </thead>
-            <tbody>
-            <tr>
-                {{#each this.data}}
-                    {{#each this}}
-                        <td>{{this}}</td>
+                <tbody>
+                {{#if this.data}}
+                    {{#each this.data}}
+                        <tr>
+                            <td>{{@index}}</td>
+                            {{#each this}}
+                                <td>{{this}}</td>
+                            {{/each}}
+                        </tr>
                     {{/each}}
-                {{/each}}
-            </tr>
+                {{/if}}
+                <tr>
+                    <td>
+                        <form id="add-data-form" action="/add-data" method="post">
+                            <input type="hidden" name="table_id" value="{{this.id}}">
+                        </form>
+                    </td>
+                    {{#each this.columns}}
+                        <td><input form="add-data-form" type="text" name="{{this}}" placeholder="{{this}}" required></td>
+                    {{/each}}
+                    <td><input form="add-data-form" type="submit" value="Add"></td>
+                </tr>
+                </tbody>
             {{/if}}
         {{/each}}
-    </tbody>
     </table>
 </div>
 {{> action-bar }}
