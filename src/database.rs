@@ -33,7 +33,13 @@ pub struct VaultTable {
     pub id: u64,
     pub name: String,
     pub column_index: Vec<ColumnIndexEntry>,
-    pub data: Vec<Vec<String>>,
+    pub data: Vec<TableRow>,
+}
+
+#[derive(Default, Debug)]
+pub struct TableRow {
+    pub id: u64,
+    pub data: Vec<String>,
 }
 
 impl From<TableIndexEntry> for VaultTable {
@@ -244,12 +250,18 @@ impl VaultDb {
                 .await?
                 .into_iter()
                 .map(|r| {
+                    //TODO: This needs improvement: 3 different types of structs are too many
                     //This only works when all columns after id are varchars, better solution?
-                    sqlx::Row::columns(&r)
-                        .iter()
-                        .skip(1) //Skip the id column
+                    let mut iter = sqlx::Row::columns(&r).iter();
+                    let id = iter
+                        .next()
                         .map(|c| sqlx::Row::get(&r, sqlx::Column::ordinal(c)))
-                        .collect()
+                        .unwrap_or(0);
+                    let data = iter
+                        .map(|c| sqlx::Row::get(&r, sqlx::Column::ordinal(c)))
+                        .collect();
+
+                    TableRow { id, data }
                 })
                 .collect();
             sqlx::Result::Ok(Some(VaultTable {
@@ -288,6 +300,18 @@ impl VaultDb {
                 .bind(admin)
                 .execute(&self.0)
                 .await,
+        )
+    }
+
+    pub async fn delete_vault_row(&self, table_id: u64, row_id: u64) -> QueryResult {
+        log_and_return(
+            sqlx::query(&format!(
+                "DELETE FROM {} WHERE id = ?",
+                gen_vault_table_name(table_id)
+            ))
+            .bind(row_id)
+            .execute(&self.0)
+            .await,
         )
     }
 }

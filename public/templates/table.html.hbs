@@ -41,23 +41,29 @@
             </tr>
             </thead>
                 <tbody>
-                {{#if this.data}}
-                    {{#each this.data}}
+                {{#if this.rows}}
+                    {{#each this.rows}}
                         <tr>
                             <td>{{@index}}</td>
-                            {{#each this}}
+                            {{#each this.data}}
                                 <!--TODO: Add word wrapping with "word-wrap: break-word"-->
                                 <td>{{this}}</td>
                             {{/each}}
+                            <td>
+                                <form action="/delete-data" method="post">
+                                    <input type="hidden" name="table_id" value="{{../id}}">
+                                    <input type="hidden" name="row_id" value="{{this.id}}">
+                                    <input type="submit" value="Delete">
+                                </form>
+                            </td>
                         </tr>
                     {{/each}}
                 {{/if}}
                 <tr>
-                    <td>
-                        <form id="add-data-form" action="/add-data" method="post">
-                            <input type="hidden" name="table_id" value="{{this.id}}">
-                        </form>
-                    </td>
+                    <form id="add-data-form" action="/add-data" method="post">
+                        <input type="hidden" name="table_id" value="{{this.id}}">
+                    </form>
+                    <td></td>
                     {{#each this.columns}}
                         <td>
                             <input form="add-data-form" type="text" name="data.{{this}}" placeholder="{{this}}"

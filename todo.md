@@ -9,7 +9,7 @@
   * [ ] Delete
   * [x] View data
   * [x] Add data
-  * [ ] Remove data
+  * [x] Remove data
   * [ ] Export data as csv
 
 ### API

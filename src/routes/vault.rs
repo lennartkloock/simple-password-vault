@@ -1,6 +1,6 @@
 //! Contains all routes that can be used to read tables
 
-use crate::database::VaultTable;
+use crate::database::{TableRow, VaultTable};
 use crate::routes::{GeneralContext, VaultResponse};
 use crate::sessions::{TokenAuthResult, WithCookie, SESSION_TOKEN_COOKIE};
 use crate::{templates, VaultConfig, VaultDb};
@@ -50,7 +50,13 @@ struct TableContextTable {
     name: String,
     selected: bool,
     columns: Vec<String>,
-    data: Vec<Vec<String>>,
+    rows: Vec<TableContextRow>,
+}
+
+#[derive(serde::Serialize)]
+struct TableContextRow {
+    id: u64,
+    data: Vec<String>,
 }
 
 impl From<VaultTable> for TableContextTable {
@@ -70,7 +76,16 @@ impl From<VaultTable> for TableContextTable {
             name: table.name,
             selected: false,
             columns,
-            data: table.data,
+            rows: table.data.into_iter().map(|r| r.into()).collect(),
+        }
+    }
+}
+
+impl From<TableRow> for TableContextRow {
+    fn from(row: TableRow) -> Self {
+        Self {
+            id: row.id,
+            data: row.data,
         }
     }
 }

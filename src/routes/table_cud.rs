@@ -7,7 +7,7 @@ use rocket::{form, http, request};
 use std::collections;
 
 pub fn get_routes() -> Vec<rocket::Route> {
-    rocket::routes![add, add_submit, add_data_submit]
+    rocket::routes![add, add_submit, add_data_submit, delete_data_submit]
 }
 
 #[rocket::get("/add")]
@@ -101,6 +101,29 @@ async fn add_data_submit(
                 VaultResponse::Err(http::Status::InternalServerError)
             }
         }
+    } else {
+        VaultResponse::Err(http::Status::InternalServerError)
+    }
+}
+
+#[derive(Debug, rocket::FromForm)]
+struct DeleteDataData {
+    table_id: u64,
+    row_id: u64,
+}
+
+#[rocket::post("/delete-data", data = "<form>")]
+async fn delete_data_submit(
+    form: form::Form<DeleteDataData>,
+    _auth: TokenAuth<WithCookie>,
+    database: &rocket::State<VaultDb>,
+) -> VaultResponse<()> {
+    if database
+        .delete_vault_row(form.table_id, form.row_id)
+        .await
+        .is_ok()
+    {
+        VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(form.table_id)))
     } else {
         VaultResponse::Err(http::Status::InternalServerError)
     }
