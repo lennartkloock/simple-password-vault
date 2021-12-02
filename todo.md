@@ -8,7 +8,7 @@
   * [x] Create
   * [ ] Delete
   * [x] View data
-  * [ ] Add data
+  * [x] Add data
   * [ ] Remove data
   * [ ] Export data as csv
 

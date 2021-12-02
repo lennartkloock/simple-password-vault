@@ -4,9 +4,10 @@ use crate::routes::{FlashContext, VaultResponse};
 use crate::sessions::{TokenAuth, TokenAuthResult, WithCookie};
 use crate::{templates, VaultConfig, VaultDb};
 use rocket::{form, http, request};
+use std::collections;
 
 pub fn get_routes() -> Vec<rocket::Route> {
-    rocket::routes![add, add_submit]
+    rocket::routes![add, add_submit, add_data_submit]
 }
 
 #[rocket::get("/add")]
@@ -61,5 +62,46 @@ async fn add_submit(
             VaultResponse::flash_error_redirect_to(rocket::uri!(add), e.message())
         }
         _ => VaultResponse::Err(http::Status::InternalServerError),
+    }
+}
+
+#[derive(Debug, rocket::FromForm)]
+struct AddDataData<'a> {
+    table_id: u64,
+    data: collections::HashMap<&'a str, &'a str>,
+}
+
+#[rocket::post("/add-data", data = "<form>")]
+async fn add_data_submit(
+    form: form::Form<AddDataData<'_>>,
+    _auth: TokenAuth<WithCookie>,
+    database: &rocket::State<VaultDb>,
+) -> VaultResponse<()> {
+    if let Ok(index) = database.fetch_column_index_by_id(form.table_id).await {
+        if index.is_empty() {
+            VaultResponse::Err(http::Status::BadRequest)
+        } else {
+            let data: collections::HashMap<&str, &str> = form
+                .data
+                .iter()
+                .filter_map(|d| {
+                    let entry = index.iter().find(|e| e.ui_name == *d.0)?;
+                    Some((entry.column_name.as_ref(), *d.1))
+                })
+                .collect();
+            if database
+                .insert_vault_data(form.table_id, data)
+                .await
+                .is_ok()
+            {
+                VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(
+                    form.table_id
+                )))
+            } else {
+                VaultResponse::Err(http::Status::InternalServerError)
+            }
+        }
+    } else {
+        VaultResponse::Err(http::Status::InternalServerError)
     }
 }

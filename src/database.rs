@@ -1,6 +1,7 @@
 use crate::VaultConfig;
 use rocket::fairing;
 use sqlx::mysql;
+use std::collections;
 
 const EXTRA_COLUMN_PREFIX: &str = "extra_";
 
@@ -172,12 +173,42 @@ impl VaultDb {
         let extra_columns = extra_column_names
             .iter()
             .fold(String::new(), |s, e| format!("{}, {} varchar(256)", s, e));
-        let statement = format!("CREATE TABLE IF NOT EXISTS {} (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, key_ varchar(256), password varchar(256){})", table_name, extra_columns);
+        let statement = format!("CREATE TABLE IF NOT EXISTS {} (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, key_ varchar(256) NOT NULL, password varchar(256) NOT NULL{})", table_name, extra_columns);
         log_and_return(sqlx::query(&statement).execute(&self.0).await)?;
         Ok(id)
     }
 
-    async fn fetch_table_index_entry(&self, id: u64) -> sqlx::Result<Option<TableIndexEntry>> {
+    pub async fn insert_vault_data(
+        &self,
+        table_id: u64,
+        data: collections::HashMap<&str, &str>,
+    ) -> QueryResult {
+        let table_name = gen_vault_table_name(table_id);
+        let column_names = &data
+            .iter()
+            .fold(String::new(), |s, e| format!("{}, {}", s, e.0))[2..]; //Cut off preceding comma and space
+        let value_placeholders = &", ?".repeat(data.len())[2..]; //Cut off preceding comma and space
+
+        let statement = format!(
+            "INSERT INTO {} ({}) VALUES ({})",
+            table_name, column_names, value_placeholders
+        );
+        let mut query = sqlx::query(&statement);
+        for datum in data {
+            query = query.bind(datum.1);
+        }
+        log_and_return(query.execute(&self.0).await)
+    }
+
+    pub async fn fetch_table_index(&self) -> sqlx::Result<Vec<TableIndexEntry>> {
+        log_and_return(
+            sqlx::query_as::<_, TableIndexEntry>("SELECT * FROM table_index")
+                .fetch_all(&self.0)
+                .await,
+        )
+    }
+
+    pub async fn fetch_table_index_entry(&self, id: u64) -> sqlx::Result<Option<TableIndexEntry>> {
         log_and_return(
             sqlx::query_as::<_, TableIndexEntry>("SELECT * FROM table_index WHERE id = ?")
                 .bind(id)
@@ -186,7 +217,7 @@ impl VaultDb {
         )
     }
 
-    async fn fetch_column_index_entry(
+    pub async fn fetch_column_index(
         &self,
         table_name: &str,
     ) -> sqlx::Result<Vec<ColumnIndexEntry>> {
@@ -200,18 +231,14 @@ impl VaultDb {
         )
     }
 
-    pub async fn fetch_table_index(&self) -> sqlx::Result<Vec<TableIndexEntry>> {
-        log_and_return(
-            sqlx::query_as::<_, TableIndexEntry>("SELECT * FROM table_index")
-                .fetch_all(&self.0)
-                .await,
-        )
+    pub async fn fetch_column_index_by_id(&self, id: u64) -> sqlx::Result<Vec<ColumnIndexEntry>> {
+        self.fetch_column_index(&gen_vault_table_name(id)).await
     }
 
     pub async fn fetch_table(&self, id: u64) -> sqlx::Result<Option<VaultTable>> {
         if let Some(table_index) = self.fetch_table_index_entry(id).await? {
             let table_name = gen_vault_table_name(table_index.id);
-            let column_index = self.fetch_column_index_entry(&table_name).await?;
+            let column_index = self.fetch_column_index(&table_name).await?;
             let data = sqlx::query(&format!("SELECT * FROM {}", table_name))
                 .fetch_all(&self.0)
                 .await?
