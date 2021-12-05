@@ -130,7 +130,7 @@ async fn new_admin_password_form(
                         rocket::uri!(new_admin_password),
                         form.context
                             .field_errors("password-confirm")
-                            .fold(String::new(), |i, e| format!("{:?}\n{}", e.kind, i)), //TODO: Improve error handling
+                            .fold(String::new(), |i, e| format!("{:?}\n{}", e.kind, i)), //XXXX: Improve error handling
                     )
                 }
             } else {

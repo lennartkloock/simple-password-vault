@@ -84,7 +84,7 @@ async fn vault_table_id(
     } else {
         match database.fetch_table(id).await {
             Ok(t) => {
-                let table_index = database.fetch_table_index().await; //Can't be done in map_or closure because of `await`, better solution?
+                let table_index = database.fetch_table_index().await; //XXXX: Can't be done in map_or closure because of `await`, better solution?
                 VaultResponse::Ok(t.map_or(
                     templates::Template::render(
                         "table-not-found",
