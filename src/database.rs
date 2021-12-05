@@ -14,42 +14,33 @@ pub struct Password {
     admin: bool,
 }
 
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow, serde::Serialize)]
 pub struct TableIndexEntry {
     pub id: u64,
     pub ui_name: String,
 }
 
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow, serde::Serialize)]
 pub struct ColumnIndexEntry {
     pub id: u64,
     pub table_name: String,
     pub column_name: String,
     pub ui_name: String,
+    pub required: bool,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, serde::Serialize)]
 pub struct VaultTable {
     pub id: u64,
     pub name: String,
-    pub column_index: Vec<ColumnIndexEntry>,
-    pub data: Vec<TableRow>,
+    pub columns: Vec<ColumnIndexEntry>,
+    pub rows: Vec<TableRow>,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, serde::Serialize)]
 pub struct TableRow {
     pub id: u64,
     pub data: Vec<String>,
-}
-
-impl From<TableIndexEntry> for VaultTable {
-    fn from(entry: TableIndexEntry) -> Self {
-        Self {
-            id: entry.id,
-            name: entry.ui_name,
-            ..Self::default()
-        }
-    }
 }
 
 type QueryResult = sqlx::Result<sqlx::mysql::MySqlQueryResult>;
@@ -107,7 +98,7 @@ impl VaultDb {
 
     pub async fn create_column_index(&self) -> QueryResult {
         log_and_return(
-            sqlx::query("CREATE TABLE IF NOT EXISTS column_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL, column_name varchar(64) NOT NULL, ui_name varchar(64) NOT NULL)")
+            sqlx::query("CREATE TABLE IF NOT EXISTS column_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL, column_name varchar(64) NOT NULL, ui_name varchar(64) NOT NULL, required boolean NOT NULL)")
             .execute(&self.0)
             .await
         )
@@ -115,7 +106,7 @@ impl VaultDb {
 
     pub async fn create_auth_table(&self) -> QueryResult {
         log_and_return(
-            sqlx::query("CREATE TABLE IF NOT EXISTS auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, password_hash varchar(64) NOT NULL UNIQUE, admin BOOLEAN NOT NULL)")
+            sqlx::query("CREATE TABLE IF NOT EXISTS auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, password_hash varchar(64) NOT NULL UNIQUE, admin boolean NOT NULL)")
                 .execute(&self.0)
                 .await
         )
@@ -135,14 +126,16 @@ impl VaultDb {
         table_name: &str,
         column_name: &str,
         ui_name: &str,
+        required: bool,
     ) -> QueryResult {
         log_and_return(
             sqlx::query(
-                "INSERT INTO column_index (table_name, column_name, ui_name) VALUES (?, ?, ?)",
+                "INSERT INTO column_index (table_name, column_name, ui_name, required) VALUES (?, ?, ?, ?)",
             )
             .bind(table_name)
             .bind(column_name)
             .bind(ui_name)
+            .bind(required)
             .execute(&self.0)
             .await,
         )
@@ -155,16 +148,16 @@ impl VaultDb {
         password_ui_name: &str,
         extra: &[&str],
     ) -> sqlx::Result<u64> {
-        //TODO: Use a transaction
+        //FIXME: Use a transaction
         let id = self
             .insert_table_index_entry(ui_name)
             .await?
             .last_insert_id();
         let table_name = gen_vault_table_name(id);
 
-        self.insert_column_index_entry(&table_name, "key_", key_ui_name)
+        self.insert_column_index_entry(&table_name, "key_", key_ui_name, true)
             .await?;
-        self.insert_column_index_entry(&table_name, "password", password_ui_name)
+        self.insert_column_index_entry(&table_name, "password", password_ui_name, true)
             .await?;
 
         let extra_column_names: Vec<String> = (0..extra.len())
@@ -172,7 +165,7 @@ impl VaultDb {
             .map(|x| format!("{}{}", EXTRA_COLUMN_PREFIX, x))
             .collect();
         for i in 0..extra.len() {
-            self.insert_column_index_entry(&table_name, &extra_column_names[i], extra[i])
+            self.insert_column_index_entry(&table_name, &extra_column_names[i], extra[i], false)
                 .await?;
         }
 
@@ -250,8 +243,7 @@ impl VaultDb {
                 .await?
                 .into_iter()
                 .map(|r| {
-                    //TODO: This needs improvement: 3 different types of structs are too many
-                    //This only works when all columns after id are varchars, better solution?
+                    //XXXX This only works when all columns after id are varchars, better solution?
                     let mut iter = sqlx::Row::columns(&r).iter();
                     let id = iter
                         .next()
@@ -267,8 +259,8 @@ impl VaultDb {
             sqlx::Result::Ok(Some(VaultTable {
                 id,
                 name: table_index.ui_name,
-                column_index,
-                data,
+                columns: column_index,
+                rows: data,
             }))
         } else {
             sqlx::Result::Ok(None)

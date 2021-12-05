@@ -1,6 +1,6 @@
 //! Contains all routes that can be used to read tables
 
-use crate::database::{TableRow, VaultTable};
+use crate::database::{TableIndexEntry, VaultTable};
 use crate::routes::{GeneralContext, VaultResponse};
 use crate::sessions::{TokenAuthResult, WithCookie, SESSION_TOKEN_COOKIE};
 use crate::{templates, VaultConfig, VaultDb};
@@ -44,56 +44,11 @@ async fn vault(
     }
 }
 
-#[derive(serde::Serialize)]
-struct TableContextTable {
-    id: u64,
-    name: String,
-    selected: bool,
-    columns: Vec<String>,
-    rows: Vec<TableContextRow>,
-}
-
-#[derive(serde::Serialize)]
-struct TableContextRow {
-    id: u64,
-    data: Vec<String>,
-}
-
-impl From<VaultTable> for TableContextTable {
-    fn from(table: VaultTable) -> Self {
-        let mut columns: Vec<String> = vec!["key_", "password"]
-            .into_iter()
-            .filter_map(|cn| table.column_index.iter().find(|c| c.column_name == cn))
-            .map(|c| c.ui_name.to_string())
-            .collect();
-        columns.extend(table.column_index.iter().filter_map(|c| {
-            c.column_name
-                .starts_with("extra_")
-                .then(|| c.ui_name.to_string())
-        }));
-        Self {
-            id: table.id,
-            name: table.name,
-            selected: false,
-            columns,
-            rows: table.data.into_iter().map(|r| r.into()).collect(),
-        }
-    }
-}
-
-impl From<TableRow> for TableContextRow {
-    fn from(row: TableRow) -> Self {
-        Self {
-            id: row.id,
-            data: row.data,
-        }
-    }
-}
-
 #[derive(Default, serde::Serialize)]
 struct TableContext {
     general: GeneralContext,
-    tables: Vec<TableContextTable>,
+    selected_table: VaultTable,
+    tables: Vec<TableIndexEntry>,
 }
 
 impl TableContext {
@@ -106,7 +61,12 @@ impl TableContext {
         self.with_general_context(GeneralContext::from(config))
     }
 
-    fn with_tables(mut self, tables: Vec<TableContextTable>) -> Self {
+    fn with_selected_table(mut self, table: VaultTable) -> Self {
+        self.selected_table = table;
+        self
+    }
+
+    fn with_tables(mut self, tables: Vec<TableIndexEntry>) -> Self {
         self.tables.extend(tables);
         self
     }
@@ -131,23 +91,14 @@ async fn vault_table_id(
                         GeneralContext::from(config.inner()),
                     ),
                     |table| {
-                        //TODO: I'm sure the following code is pretty ugly but it works for now!
-                        let selected_table_id = table.id;
-                        let mut context_table: TableContextTable = table.into();
-                        context_table.selected = true;
-                        //TODO: Do not throw all tables in one list. Only the selected table should be a TableContextTable
-                        let mut tables = vec![context_table];
-                        if let Ok(index) = table_index {
-                            tables.extend(index.into_iter().filter_map(|e| {
-                                (selected_table_id != e.id)
-                                    .then(|| TableContextTable::from(VaultTable::from(e)))
-                            }));
+                        let mut context = TableContext::default();
+                        if let Ok(mut other_tables) = table_index {
+                            other_tables.retain(|e| e.id != table.id); //Remove the selected table from the list, otherwise it would appear twice in the drop-down
+                            context = context.with_tables(other_tables);
                         }
                         templates::Template::render(
                             "table",
-                            TableContext::default()
-                                .with_config(config)
-                                .with_tables(tables),
+                            context.with_config(config).with_selected_table(table),
                         )
                     },
                 ))
