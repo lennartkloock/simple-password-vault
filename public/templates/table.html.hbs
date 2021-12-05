@@ -8,64 +8,65 @@
 {{> navigation name=general.name page="Vault" logout=true }}
 <div class="padding-to-nav center-container">
     <table class="responsive-width">
-    <thead>
-    <tr>
-        <th colspan="1000" class="bottom-border">
-            <div class="space-between-container">
-                <form action="/vault" method="get">
-                    <select name="id" onchange="this.form.submit();">
-                        <option value="{{selected_table.id}}" selected>{{selected_table.name}}</option>
-                        {{#each tables}}
-                            <option value="{{this.id}}">{{this.ui_name}}</option>
-                        {{/each}}
-                    </select>
-                </form>
-                <form action="/edit" method="get">
-                    <input type="hidden" name="id" value="{{selected_table.id}}">
-                    <input type="submit" value="Edit table">
-                </form>
-            </div>
-        </th>
-    </tr>
-            <tr>
-                <th>#</th>
-                {{#each selected_table.columns}}
-                    <th>{{this.ui_name}}</th>
-                {{/each}}
-            </tr>
-            </thead>
-                <tbody>
-                {{#if selected_table.rows}}
-                    {{#each selected_table.rows}}
-                        <tr>
-                            <td>{{@index}}</td>
-                            {{#each this.data}}
-                                <!--FIXME: Add word wrapping with "word-wrap: break-word"-->
-                                <td>{{this}}</td>
+        <thead>
+        <tr>
+            <th colspan="1000" class="bottom-border">
+                <div class="space-between-container">
+                    <form action="/vault" method="get">
+                        <select name="id" onchange="this.form.submit();">
+                            <option value="{{selected_table.id}}" selected>{{selected_table.name}}</option>
+                            {{#each tables}}
+                                <option value="{{this.id}}">{{this.ui_name}}</option>
                             {{/each}}
-                            <td>
-                                <form action="/delete-data" method="post">
-                                    <input type="hidden" name="table_id" value="{{../id}}">
-                                    <input type="hidden" name="row_id" value="{{this.id}}">
-                                    <input type="submit" value="Delete">
-                                </form>
-                            </td>
-                        </tr>
-                    {{/each}}
-                {{/if}}
-                <tr>
-                    <form id="add-data-form" action="/add-data" method="post">
-                        <input type="hidden" name="table_id" value="{{this.id}}">
+                        </select>
                     </form>
-                    <td></td>
-                    {{#each selected_table.columns}}
-                        <td>
-                            <input form="add-data-form" type="text" name="data.{{this.ui_name}}" placeholder="{{this.ui_name}}" {{#if this.required}}required{{/if}}>
-                        </td>
+                    <form action="/edit" method="get">
+                        <input type="hidden" name="id" value="{{selected_table.id}}">
+                        <input type="submit" value="Edit table">
+                    </form>
+                </div>
+            </th>
+        </tr>
+        <tr>
+            <th>#</th>
+            {{#each selected_table.columns}}
+                <th>{{this.ui_name}}</th>
+            {{/each}}
+        </tr>
+        </thead>
+        <tbody>
+        {{#if selected_table.rows}}
+            {{#each selected_table.rows}}
+                <tr>
+                    <td>{{@index}}</td>
+                    {{#each this.data}}
+                        <!--FIXME: Add word wrapping with "word-wrap: break-word"-->
+                        <td>{{this}}</td>
                     {{/each}}
-                    <td><input form="add-data-form" type="submit" value="Add"></td>
+                    <td>
+                        <form action="/delete-data" method="post">
+                            <input type="hidden" name="table_id" value="{{../id}}">
+                            <input type="hidden" name="row_id" value="{{this.id}}">
+                            <input type="submit" value="Delete">
+                        </form>
+                    </td>
                 </tr>
-                </tbody>
+            {{/each}}
+        {{/if}}
+        <tr>
+            <form id="add-data-form" action="/add-data" method="post">
+                <input type="hidden" name="table_id" value="{{this.id}}">
+            </form>
+            <td></td>
+            {{#each selected_table.columns}}
+                <td>
+                    <input form="add-data-form" type="text" name="data.{{this.ui_name}}" placeholder="{{this.ui_name}}"
+                           {{#if this.required}}required{{/if}}>
+                </td>
+            {{/each}}
+            <td><input form="add-data-form" type="submit" value="Add"></td>
+        </tr>
+        </tbody>
     </table>
 </div>
 {{> action-bar }}
