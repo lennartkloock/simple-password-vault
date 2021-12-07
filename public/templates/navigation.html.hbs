@@ -8,6 +8,11 @@
         <p>{{page}}</p>
     </div>
     <div class="center-container small-side-margin">
+        {{#if admin}}
+            <a href="/admin">
+                <img src="images/streamline-setting-cog.svg" alt="Admin Settings" width="32" height="32">
+            </a>
+        {{/if}}
         {{#if logout}}
             <form action="/logout" method="post">
                 <input type="image" src="images/streamline-logout.svg" alt="Theme" width="32" height="32">
