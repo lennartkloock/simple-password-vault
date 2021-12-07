@@ -2,6 +2,7 @@
 
 ### UI
 * [x] Create admin account on first usage
+* [ ] Create new passwords
 * [x] Login
 * [x] Logout
 * [ ] Tables
