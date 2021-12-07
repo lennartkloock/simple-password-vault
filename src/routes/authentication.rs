@@ -51,10 +51,11 @@ async fn login_submit(
 ) -> VaultResponse<()> {
     match database.fetch_password(form.password).await {
         Ok(password) => {
-            if password.is_some() {
+            if let Some(p) = password {
                 let token = session_manager.lock().await.generate_session(
                     config.token_length.unwrap_or(32) as usize,
                     std::time::Duration::from_secs(config.token_validity_duration_secs),
+                    p.admin,
                 );
                 cookies.add(
                     http::Cookie::build(SESSION_TOKEN_COOKIE, token.0)
@@ -120,7 +121,11 @@ async fn new_admin_password_form(
         Ok(passwords) => {
             if passwords.is_empty() {
                 if let Some(ref data) = form.value {
-                    if database.insert_password(data.password, true).await.is_ok() {
+                    if database
+                        .insert_password(data.password, true, "Admin")
+                        .await
+                        .is_ok()
+                    {
                         VaultResponse::redirect_to(rocket::uri!(login))
                     } else {
                         VaultResponse::Err(http::Status::InternalServerError)

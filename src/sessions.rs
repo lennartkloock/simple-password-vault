@@ -5,7 +5,19 @@ use std::{collections, marker, time};
 
 pub const SESSION_TOKEN_COOKIE: &str = "_session_token";
 
-type SessionMap = collections::HashMap<String, time::Instant>;
+#[derive(Copy, Clone)]
+pub struct SessionMetadata {
+    pub expires: time::Instant,
+    pub admin: bool,
+}
+
+impl SessionMetadata {
+    pub fn new(expires: time::Instant, admin: bool) -> Self {
+        SessionMetadata { expires, admin }
+    }
+}
+
+type SessionMap = collections::HashMap<String, SessionMetadata>;
 
 pub struct SessionManager(SessionMap);
 
@@ -26,21 +38,23 @@ impl SessionManager {
         &mut self,
         token_len: usize,
         validity_duration: time::Duration,
-    ) -> (String, time::Instant) {
+        admin: bool,
+    ) -> (String, SessionMetadata) {
         let entry = (
             gen_random_token(token_len),
-            time::Instant::now() + validity_duration,
+            SessionMetadata::new(time::Instant::now() + validity_duration, admin),
         );
         self.0.insert(entry.0.clone(), entry.1);
         entry
     }
 
-    pub fn get_session<'a>(&self, key: &'a str) -> Option<(&'a str, &time::Instant)> {
-        self.0.get(key).map(|i| (key, i))
+    pub fn get_session<'a>(&self, key: &'a str) -> Option<(&'a str, &SessionMetadata)> {
+        self.0.get(key).map(|s| (key, s))
     }
 
     pub fn is_session_valid(&self, key: &str) -> Option<bool> {
-        self.get_session(key).map(|s| *s.1 > time::Instant::now())
+        self.get_session(key)
+            .map(|s| s.1.expires > time::Instant::now())
     }
 }
 
@@ -52,7 +66,13 @@ fn gen_random_token(len: usize) -> String {
         .collect()
 }
 
-pub struct TokenAuth<M>(marker::PhantomData<M>);
+pub struct TokenAuth<M>(String, marker::PhantomData<M>);
+
+impl<M> TokenAuth<M> {
+    pub fn token(&self) -> &str {
+        &self.0
+    }
+}
 
 pub type TokenAuthResult<M> = Result<TokenAuth<M>, TokenAuthError>;
 
@@ -90,7 +110,7 @@ impl<'r, M: AuthMethod> request::FromRequest<'r> for TokenAuth<M> {
                         if !valid {
                             return Self::Error::ExpiredToken.into();
                         }
-                        request::Outcome::Success(Self(marker::PhantomData))
+                        request::Outcome::Success(Self(token, marker::PhantomData))
                     }
                     None => Self::Error::NoSuchToken.into(),
                 },

@@ -8,12 +8,14 @@ pub mod vault;
 #[derive(serde::Serialize)]
 struct GeneralContext {
     name: String,
+    admin: bool,
 }
 
 impl Default for GeneralContext {
     fn default() -> Self {
         Self {
             name: "Password Vault".to_string(),
+            admin: false,
         }
     }
 }
@@ -23,7 +25,10 @@ impl From<&VaultConfig> for GeneralContext {
         config
             .name
             .clone()
-            .map(|name| GeneralContext { name })
+            .map(|name| GeneralContext {
+                name,
+                ..GeneralContext::default()
+            })
             .unwrap_or_default()
     }
 }

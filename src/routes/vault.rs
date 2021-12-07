@@ -2,7 +2,7 @@
 
 use crate::database::{TableIndexEntry, VaultTable};
 use crate::routes::{GeneralContext, VaultResponse};
-use crate::sessions::{TokenAuthResult, WithCookie, SESSION_TOKEN_COOKIE};
+use crate::sessions::{SafeSessionManager, TokenAuthResult, WithCookie, SESSION_TOKEN_COOKIE};
 use crate::{templates, VaultConfig, VaultDb};
 use rocket::{http, response};
 
@@ -57,10 +57,6 @@ impl TableContext {
         self
     }
 
-    fn with_config(self, config: &VaultConfig) -> Self {
-        self.with_general_context(GeneralContext::from(config))
-    }
-
     fn with_selected_table(mut self, table: VaultTable) -> Self {
         self.selected_table = table;
         self
@@ -77,14 +73,19 @@ async fn vault_table_id(
     id: u64,
     auth: TokenAuthResult<WithCookie>,
     config: &rocket::State<VaultConfig>,
+    session_manager: &rocket::State<SafeSessionManager>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<templates::Template> {
-    if auth.is_err() {
-        VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
-    } else {
+    if let Ok(token) = auth {
         match database.fetch_table(id).await {
             Ok(t) => {
                 let table_index = database.fetch_table_index().await; //XXXX: Can't be done in map_or closure because of `await`, better solution?
+                let admin = session_manager
+                    .lock()
+                    .await
+                    .get_session(token.token())
+                    .map(|s| s.1.admin)
+                    .unwrap_or(false); //XXXX: Same as above
                 VaultResponse::Ok(t.map_or(
                     templates::Template::render(
                         "table-not-found",
@@ -98,12 +99,19 @@ async fn vault_table_id(
                         }
                         templates::Template::render(
                             "table",
-                            context.with_config(config).with_selected_table(table),
+                            context
+                                .with_general_context(GeneralContext {
+                                    admin,
+                                    ..GeneralContext::from(config.inner())
+                                })
+                                .with_selected_table(table),
                         )
                     },
                 ))
             }
             Err(_) => VaultResponse::Err(http::Status::InternalServerError),
         }
+    } else {
+        VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
     }
 }
