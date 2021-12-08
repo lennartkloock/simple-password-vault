@@ -7,13 +7,13 @@ const EXTRA_COLUMN_PREFIX: &str = "extra_";
 
 pub struct VaultDb(mysql::MySqlPool);
 
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Debug, sqlx::FromRow, serde::Serialize)]
 pub struct Password {
     pub id: u64,
     pub name: String,
-    pub created: chrono::DateTime<chrono::Utc>,
     pub password_hash: String,
     pub admin: bool,
+    pub created: chrono::DateTime<chrono::Utc>,
 }
 
 #[derive(Debug, sqlx::FromRow, serde::Serialize)]
@@ -108,7 +108,7 @@ impl VaultDb {
 
     pub async fn create_auth_table(&self) -> QueryResult {
         log_and_return(
-            sqlx::query("CREATE TABLE IF NOT EXISTS auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, name varchar(64) NOT NULL, password_hash varchar(64) NOT NULL UNIQUE, admin boolean NOT NULL, created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP)")
+            sqlx::query("CREATE TABLE IF NOT EXISTS auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, name varchar(64) NOT NULL UNIQUE, password_hash varchar(64) NOT NULL UNIQUE, admin boolean NOT NULL, created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP)")
                 .execute(&self.0)
                 .await
         )

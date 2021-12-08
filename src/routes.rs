@@ -1,6 +1,7 @@
 use crate::VaultConfig;
 use rocket::{http, request, response};
 
+pub mod admin;
 pub mod authentication;
 pub mod table_cud;
 pub mod vault;

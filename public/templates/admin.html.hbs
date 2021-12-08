@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{> head name=general.name page="Add Table" }}
+    <link href="/css/table.css" rel="stylesheet">
+</head>
+<body>
+{{> navigation name=general.name page="Admin Settings" admin=false logout=true }}
+<div class="padding-to-nav center-column-container">
+    <h1>User Passwords</h1>
+    <table class="responsive-width">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Created</th>
+            <th>Admin</th>
+            <th>
+                <form action="/admin/add-password" method="get">
+                    <input type="submit" value="Add" style="width: 100%">
+                </form>
+            </th>
+        </tr>
+        {{#each passwords}}
+            <tr>
+                <td>{{this.name}}</td>
+                <td>{{this.created}}</td>
+                <td style="text-align: center">
+                    {{#if this.admin}}
+                        <img src="/images/streamline-validation-check.svg" alt="Yes" width="16" height="16">
+                    {{else}}
+                        <img src="/images/streamline-delete.svg" alt="No" width="16" height="16">
+                    {{/if}}
+                </td>
+                <td>
+                    <form action="/admin/delete-password" method="post">
+                        <input type="hidden" name="password_id" value="{{this.id}}">
+                        <input type="submit" value="Delete" style="width: 100%">
+                    </form>
+                </td>
+            </tr>
+        {{/each}}
+        </thead>
+    </table>
+</div>
+</body>
+</html>

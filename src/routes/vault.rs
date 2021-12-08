@@ -83,8 +83,7 @@ async fn vault_table_id(
                 let admin = session_manager
                     .lock()
                     .await
-                    .get_session(token.token())
-                    .map(|s| s.1.admin)
+                    .is_admin_session(token.token())
                     .unwrap_or(false); //XXXX: Same as above
                 VaultResponse::Ok(t.map_or(
                     templates::Template::render(

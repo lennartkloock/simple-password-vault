@@ -52,6 +52,10 @@ impl SessionManager {
         self.0.get(key).map(|s| (key, s))
     }
 
+    pub fn is_admin_session(&self, key: &str) -> Option<bool> {
+        self.get_session(key).map(|s| s.1.admin)
+    }
+
     pub fn is_session_valid(&self, key: &str) -> Option<bool> {
         self.get_session(key)
             .map(|s| s.1.expires > time::Instant::now())

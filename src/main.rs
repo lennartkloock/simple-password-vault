@@ -22,6 +22,7 @@ async fn main() {
         .attach(VaultDb::fairing().await)
         .attach(sessions::SessionManager::fairing())
         .attach(templates::Template::fairing())
+        .mount("/", routes::admin::get_routes())
         .mount("/", routes::authentication::get_routes())
         .mount("/", routes::table_cud::get_routes())
         .mount("/", routes::vault::get_routes());

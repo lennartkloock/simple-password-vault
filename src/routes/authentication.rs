@@ -134,7 +134,7 @@ async fn new_admin_password_form(
                     VaultResponse::flash_error_redirect_to(
                         rocket::uri!(new_admin_password),
                         form.context
-                            .field_errors("password-confirm")
+                            .field_errors("password_confirm")
                             .fold(String::new(), |i, e| format!("{:?}\n{}", e.kind, i)), //XXXX: Improve error handling
                     )
                 }
