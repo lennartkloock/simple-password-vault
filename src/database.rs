@@ -10,9 +10,10 @@ pub struct VaultDb(mysql::MySqlPool);
 #[derive(Debug, sqlx::FromRow)]
 pub struct Password {
     pub id: u64,
+    pub name: String,
+    pub created: chrono::DateTime<chrono::Utc>,
     pub password_hash: String,
     pub admin: bool,
-    pub comment: String,
 }
 
 #[derive(Debug, sqlx::FromRow, serde::Serialize)]
@@ -107,7 +108,7 @@ impl VaultDb {
 
     pub async fn create_auth_table(&self) -> QueryResult {
         log_and_return(
-            sqlx::query("CREATE TABLE IF NOT EXISTS auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, password_hash varchar(64) NOT NULL UNIQUE, admin boolean NOT NULL, comment varchar(64) NOT NULL)")
+            sqlx::query("CREATE TABLE IF NOT EXISTS auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, name varchar(64) NOT NULL, password_hash varchar(64) NOT NULL UNIQUE, admin boolean NOT NULL, created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP)")
                 .execute(&self.0)
                 .await
         )
@@ -286,14 +287,14 @@ impl VaultDb {
         )
     }
 
-    pub async fn insert_password(&self, password: &str, admin: bool, comment: &str) -> QueryResult {
+    pub async fn insert_password(&self, name: &str, password: &str, admin: bool) -> QueryResult {
         log_and_return(
             sqlx::query(
-                "INSERT INTO auth (password_hash, admin, comment) VALUES (SHA2(?, 256), ?, ?)",
+                "INSERT INTO auth (name, password_hash, admin) VALUES (?, SHA2(?, 256), ?)",
             )
+            .bind(name)
             .bind(password)
             .bind(admin)
-            .bind(comment)
             .execute(&self.0)
             .await,
         )

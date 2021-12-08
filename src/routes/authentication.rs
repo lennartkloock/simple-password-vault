@@ -122,7 +122,7 @@ async fn new_admin_password_form(
             if passwords.is_empty() {
                 if let Some(ref data) = form.value {
                     if database
-                        .insert_password(data.password, true, "Admin")
+                        .insert_password("Admin", data.password, true)
                         .await
                         .is_ok()
                     {
