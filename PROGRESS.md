@@ -1,6 +1,6 @@
-## To-Do
+# Progress
 
-### UI
+## UI
 * [x] Create admin account on first usage
 * [x] User Passwords
   * [x] Create
@@ -17,7 +17,7 @@
   * [x] Export data as csv
   * [ ] Import data from csv
 
-### API
+## API
 * [ ] OpenAPI specification
 * [ ] Sessions
   * [ ] Create token (Login)
