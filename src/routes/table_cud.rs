@@ -1,3 +1,5 @@
+#![allow(clippy::useless_conversion)] //Because of `#[field(...)]` in `AddTableData`
+
 //! Contains all routes that create, update or delete (`CUD`) tables
 
 use crate::routes::{FlashContext, VaultResponse};
