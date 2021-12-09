@@ -3,63 +3,17 @@ use rocket::fairing;
 use sqlx::mysql;
 use std::collections;
 
+pub mod data;
+
+pub use data::*;
+
 const EXTRA_COLUMN_PREFIX: &str = "extra_";
 
 pub struct VaultDb(mysql::MySqlPool);
 
-#[derive(Debug, sqlx::FromRow, serde::Serialize)]
-pub struct Password {
-    pub id: u64,
-    pub name: String,
-    pub password_hash: String,
-    pub admin: bool,
-    pub created: chrono::DateTime<chrono::Utc>,
-}
-
-#[derive(Debug, sqlx::FromRow, serde::Serialize)]
-pub struct TableIndexEntry {
-    pub id: u64,
-    pub ui_name: String,
-}
-
-#[derive(Debug, sqlx::FromRow, serde::Serialize)]
-pub struct ColumnIndexEntry {
-    pub id: u64,
-    pub table_name: String,
-    pub column_name: String,
-    pub ui_name: String,
-    pub required: bool,
-}
-
-#[derive(Default, Debug, serde::Serialize)]
-pub struct VaultTable {
-    pub id: u64,
-    pub name: String,
-    pub columns: Vec<ColumnIndexEntry>,
-    pub rows: Vec<TableRow>,
-}
-
-#[derive(Default, Debug, serde::Serialize)]
-pub struct TableRow {
-    pub id: u64,
-    pub data: Vec<String>,
-}
-
-impl VaultTable {
-    pub fn export_csv(self) -> Result<String, Box<dyn std::error::Error>> {
-        let mut wtr = csv::WriterBuilder::new()
-            .has_headers(false)
-            .from_writer(vec![]);
-        wtr.write_record(self.columns.into_iter().map(|c| c.ui_name))?; //Header row
-        for row in self.rows {
-            wtr.write_record(row.data)?;
-        }
-        Ok(String::from_utf8(wtr.into_inner()?)?)
-    }
-}
-
 type QueryResult = sqlx::Result<sqlx::mysql::MySqlQueryResult>;
 
+// Setup
 impl VaultDb {
     pub async fn fairing() -> impl fairing::Fairing {
         fairing::AdHoc::try_on_ignite("Database", |rocket| async move {
@@ -102,20 +56,23 @@ impl VaultDb {
         })?;
         Ok(())
     }
+}
 
+// Create table statements
+impl VaultDb {
     pub async fn create_table_index(&self) -> QueryResult {
         log_and_return(
             sqlx::query("CREATE TABLE IF NOT EXISTS table_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, ui_name varchar(64) NOT NULL UNIQUE)")
-            .execute(&self.0)
-            .await
+                .execute(&self.0)
+                .await
         )
     }
 
     pub async fn create_column_index(&self) -> QueryResult {
         log_and_return(
             sqlx::query("CREATE TABLE IF NOT EXISTS column_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL, column_name varchar(64) NOT NULL, ui_name varchar(64) NOT NULL, required boolean NOT NULL)")
-            .execute(&self.0)
-            .await
+                .execute(&self.0)
+                .await
         )
     }
 
@@ -124,35 +81,6 @@ impl VaultDb {
             sqlx::query("CREATE TABLE IF NOT EXISTS auth (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, name varchar(64) NOT NULL UNIQUE, password_hash varchar(64) NOT NULL UNIQUE, admin boolean NOT NULL, created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP)")
                 .execute(&self.0)
                 .await
-        )
-    }
-
-    async fn insert_table_index_entry(&self, ui_name: &str) -> QueryResult {
-        log_and_return(
-            sqlx::query("INSERT INTO table_index (ui_name) VALUES (?)")
-                .bind(ui_name)
-                .execute(&self.0)
-                .await,
-        )
-    }
-
-    async fn insert_column_index_entry(
-        &self,
-        table_name: &str,
-        column_name: &str,
-        ui_name: &str,
-        required: bool,
-    ) -> QueryResult {
-        log_and_return(
-            sqlx::query(
-                "INSERT INTO column_index (table_name, column_name, ui_name, required) VALUES (?, ?, ?, ?)",
-            )
-            .bind(table_name)
-            .bind(column_name)
-            .bind(ui_name)
-            .bind(required)
-            .execute(&self.0)
-            .await,
         )
     }
 
@@ -191,6 +119,38 @@ impl VaultDb {
         log_and_return(sqlx::query(&statement).execute(&self.0).await)?;
         Ok(id)
     }
+}
+
+// Insert statements
+impl VaultDb {
+    async fn insert_table_index_entry(&self, ui_name: &str) -> QueryResult {
+        log_and_return(
+            sqlx::query("INSERT INTO table_index (ui_name) VALUES (?)")
+                .bind(ui_name)
+                .execute(&self.0)
+                .await,
+        )
+    }
+
+    async fn insert_column_index_entry(
+        &self,
+        table_name: &str,
+        column_name: &str,
+        ui_name: &str,
+        required: bool,
+    ) -> QueryResult {
+        log_and_return(
+            sqlx::query(
+                "INSERT INTO column_index (table_name, column_name, ui_name, required) VALUES (?, ?, ?, ?)",
+            )
+                .bind(table_name)
+                .bind(column_name)
+                .bind(ui_name)
+                .bind(required)
+                .execute(&self.0)
+                .await,
+        )
+    }
 
     pub async fn insert_vault_data(
         &self,
@@ -214,6 +174,22 @@ impl VaultDb {
         log_and_return(query.execute(&self.0).await)
     }
 
+    pub async fn insert_password(&self, name: &str, password: &str, admin: bool) -> QueryResult {
+        log_and_return(
+            sqlx::query(
+                "INSERT INTO auth (name, password_hash, admin) VALUES (?, SHA2(?, 256), ?)",
+            )
+            .bind(name)
+            .bind(password)
+            .bind(admin)
+            .execute(&self.0)
+            .await,
+        )
+    }
+}
+
+// Fetch statements
+impl VaultDb {
     pub async fn fetch_table_index(&self) -> sqlx::Result<Vec<TableIndexEntry>> {
         log_and_return(
             sqlx::query_as::<_, TableIndexEntry>("SELECT * FROM table_index")
@@ -299,20 +275,10 @@ impl VaultDb {
                 .await,
         )
     }
+}
 
-    pub async fn insert_password(&self, name: &str, password: &str, admin: bool) -> QueryResult {
-        log_and_return(
-            sqlx::query(
-                "INSERT INTO auth (name, password_hash, admin) VALUES (?, SHA2(?, 256), ?)",
-            )
-            .bind(name)
-            .bind(password)
-            .bind(admin)
-            .execute(&self.0)
-            .await,
-        )
-    }
-
+// Delete Statements
+impl VaultDb {
     pub async fn delete_vault_row(&self, table_id: u64, row_id: u64) -> QueryResult {
         log_and_return(
             sqlx::query(&format!(
