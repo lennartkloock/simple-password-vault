@@ -55,7 +55,7 @@
         {{/if}}
         <tr>
             <form id="add-data-form" action="/add-data" method="post">
-                <input type="hidden" name="table_id" value="{{this.id}}">
+                <input type="hidden" name="table_id" value="{{selected_table.id}}">
             </form>
             <td></td>
             {{#each selected_table.columns}}
