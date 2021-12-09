@@ -44,7 +44,7 @@
                     {{/each}}
                     <td>
                         <form action="/delete-data" method="post">
-                            <input type="hidden" name="table_id" value="{{../id}}">
+                            <input type="hidden" name="table_id" value="{{../selected_table.id}}">
                             <input type="hidden" name="row_id" value="{{this.id}}">
                             <input type="submit" value="Delete" style="width: 100%">
                         </form>
