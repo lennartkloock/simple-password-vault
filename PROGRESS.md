@@ -15,6 +15,7 @@
   * [x] Add data
   * [x] Remove data
   * [ ] Export data as csv
+  * [ ] Import data from csv
 
 ### API
 * [ ] OpenAPI specification
@@ -22,9 +23,9 @@
   * [ ] Create token (Login)
   * [ ] Delete token (Logout)
 * [ ] Tables
+  * [ ] List
   * [ ] Create
   * [ ] Delete
   * [ ] Fetch data
   * [ ] Add data
   * [ ] Remove data
-  * [ ] Export data as csv
