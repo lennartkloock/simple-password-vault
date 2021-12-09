@@ -2,10 +2,12 @@
 
 ### UI
 * [x] Create admin account on first usage
-* [x] Create new passwords
-* [ ] Delete passwords
-* [x] Login
-* [x] Logout
+* [x] User Passwords
+  * [x] Create
+  * [ ] Delete
+* [x] Sessions
+  * [x] Login
+  * [x] Logout
 * [ ] Tables
   * [x] Create
   * [ ] Delete
@@ -16,8 +18,9 @@
 
 ### API
 * [ ] OpenAPI specification
-* [ ] Create token (Login)
-* [ ] Delete token (Logout)
+* [ ] Sessions
+  * [ ] Create token (Login)
+  * [ ] Delete token (Logout)
 * [ ] Tables
   * [ ] Create
   * [ ] Delete
