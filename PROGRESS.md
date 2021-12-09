@@ -4,7 +4,7 @@
 * [x] Create admin account on first usage
 * [x] User Passwords
   * [x] Create
-  * [ ] Delete
+  * [x] Delete
 * [x] Sessions
   * [x] Login
   * [x] Logout

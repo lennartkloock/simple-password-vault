@@ -1,22 +1,27 @@
 use crate::database::Password;
-use crate::routes::{FlashContext, GeneralContext, VaultResponse};
+use crate::routes::{FlashContext, VaultResponse};
 use crate::sessions::{SafeSessionManager, TokenAuthResult, WithCookie};
 use crate::{templates, VaultConfig, VaultDb};
 use rocket::{form, http, request};
 
 pub fn get_routes() -> Vec<rocket::Route> {
-    rocket::routes![admin, add_password, add_password_submit]
+    rocket::routes![
+        admin,
+        add_password,
+        add_password_submit,
+        delete_password_submit
+    ]
 }
 
 #[derive(Default, serde::Serialize)]
 struct AdminContext {
-    general: GeneralContext,
+    flash: FlashContext,
     passwords: Vec<Password>,
 }
 
 impl AdminContext {
-    fn with_config(mut self, config: &VaultConfig) -> Self {
-        self.general = GeneralContext::from(config);
+    fn with_flash(mut self, flash: FlashContext) -> Self {
+        self.flash = flash;
         self
     }
 
@@ -32,6 +37,7 @@ async fn admin(
     config: &rocket::State<VaultConfig>,
     session_manager: &rocket::State<SafeSessionManager>,
     database: &rocket::State<VaultDb>,
+    flash: Option<request::FlashMessage<'_>>,
 ) -> VaultResponse<templates::Template> {
     if let Ok(token) = auth {
         if session_manager
@@ -40,7 +46,11 @@ async fn admin(
             .is_admin_session(token.token())
             .unwrap_or(false)
         {
-            let mut context = AdminContext::default().with_config(config);
+            let mut context = AdminContext::default().with_flash(
+                FlashContext::default()
+                    .with_config(config)
+                    .with_optional_flash(flash),
+            );
             if let Ok(passwords) = database.fetch_all_password(false).await {
                 context = context.with_passwords(passwords);
             }
@@ -109,6 +119,43 @@ async fn add_password_submit(
                 Ok(_) => VaultResponse::redirect_to(rocket::uri!(admin)),
                 Err(sqlx::Error::Database(e)) => {
                     VaultResponse::flash_error_redirect_to(rocket::uri!(add_password), e.message())
+                }
+                Err(_) => VaultResponse::Err(http::Status::InternalServerError),
+            }
+        } else {
+            VaultResponse::Err(http::Status::Unauthorized)
+        }
+    } else {
+        VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
+    }
+}
+
+#[derive(rocket::FromForm)]
+struct DeletePasswordData {
+    password_id: u64,
+}
+
+#[rocket::post("/admin/delete-password", data = "<form>")]
+async fn delete_password_submit(
+    auth: TokenAuthResult<WithCookie>,
+    session_manager: &rocket::State<SafeSessionManager>,
+    database: &rocket::State<VaultDb>,
+    form: form::Form<DeletePasswordData>,
+) -> VaultResponse<()> {
+    if let Ok(token) = auth {
+        if session_manager
+            .lock()
+            .await
+            .is_admin_session(token.token())
+            .unwrap_or(false)
+        {
+            match database.delete_password(form.password_id).await {
+                Ok(_) => VaultResponse::flash_success_redirect_to(
+                    rocket::uri!(admin),
+                    "Successfully deleted password",
+                ),
+                Err(sqlx::Error::Database(e)) => {
+                    VaultResponse::flash_error_redirect_to(rocket::uri!(admin), e.message())
                 }
                 Err(_) => VaultResponse::Err(http::Status::InternalServerError),
             }

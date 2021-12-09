@@ -12,10 +12,6 @@
     @include layout.flex-container(space-between);
 }
 
-.small-margin {
-    margin: layout.$small-space;
-}
-
 ol {
     text-align: right;
 }

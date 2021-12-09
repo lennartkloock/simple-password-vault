@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {{> head name=general.name page="Add Table" }}
+    {{> head name=flash.general.name page="Add Table" }}
     <link href="/css/table.css" rel="stylesheet">
 </head>
 <body>
-{{> navigation name=general.name page="Admin Settings" admin=false logout=true }}
+{{> navigation name=flash.general.name page="Admin Settings" admin=false logout=true }}
 <div class="padding-to-nav center-column-container">
+    <div class="small-margin">
+        {{> error-box kind=flash.kind message=flash.message }}
+    </div>
     <h1>User Passwords</h1>
     <table class="responsive-width">
         <thead>

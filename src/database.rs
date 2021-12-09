@@ -311,6 +311,15 @@ impl VaultDb {
             .await,
         )
     }
+
+    pub async fn delete_password(&self, password_id: u64) -> QueryResult {
+        log_and_return(
+            sqlx::query("DELETE FROM auth WHERE id = ?")
+                .bind(password_id)
+                .execute(&self.0)
+                .await,
+        )
+    }
 }
 
 fn gen_vault_table_name(id: u64) -> String {
