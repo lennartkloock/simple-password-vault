@@ -1,3 +1,5 @@
+//! Contains all routes and types of the admin page
+
 use crate::database::Password;
 use crate::routes::{FlashContext, VaultResponse};
 use crate::sessions::{SafeSessionManager, TokenAuthResult, WithCookie};

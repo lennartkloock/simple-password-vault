@@ -1,3 +1,5 @@
+//! Contains all routes of the export functionality
+
 use crate::routes::VaultResponse;
 use crate::sessions::{TokenAuth, WithCookie};
 use crate::VaultDb;
