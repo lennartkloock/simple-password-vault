@@ -14,7 +14,7 @@
   * [x] View data
   * [x] Add data
   * [x] Remove data
-  * [ ] Export data as csv
+  * [x] Export data as csv
   * [ ] Import data from csv
 
 ### API

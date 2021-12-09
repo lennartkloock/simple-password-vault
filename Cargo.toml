@@ -12,6 +12,7 @@ rocket_dyn_templates = { version = "0.1.0-rc.1", features = ["handlebars"] }
 time = "0.2" #Only for cookie max age
 chrono = { version = "0.4", features = ["serde"] }
 sqlx = { version = "0.5", features = ["runtime-tokio-rustls", "mysql", "chrono"] }
+csv = "1.1"
 
 [dev-dependencies.cargo-husky]
 version = "1"

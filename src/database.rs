@@ -45,6 +45,19 @@ pub struct TableRow {
     pub data: Vec<String>,
 }
 
+impl VaultTable {
+    pub fn export_csv(self) -> Result<String, Box<dyn std::error::Error>> {
+        let mut wtr = csv::WriterBuilder::new()
+            .has_headers(false)
+            .from_writer(vec![]);
+        wtr.write_record(self.columns.into_iter().map(|c| c.ui_name))?; //Header row
+        for row in self.rows {
+            wtr.write_record(row.data)?;
+        }
+        Ok(String::from_utf8(wtr.into_inner()?)?)
+    }
+}
+
 type QueryResult = sqlx::Result<sqlx::mysql::MySqlQueryResult>;
 
 impl VaultDb {

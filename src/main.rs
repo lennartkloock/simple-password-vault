@@ -24,6 +24,7 @@ async fn main() {
         .attach(templates::Template::fairing())
         .mount("/", routes::admin::get_routes())
         .mount("/", routes::authentication::get_routes())
+        .mount("/", routes::export::get_routes())
         .mount("/", routes::table_cud::get_routes())
         .mount("/", routes::vault::get_routes());
 

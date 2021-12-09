@@ -20,10 +20,9 @@
                             {{/each}}
                         </select>
                     </form>
-                    <form action="/edit" method="get">
-                        <input type="hidden" name="id" value="{{selected_table.id}}">
-                        <input type="submit" value="Edit table" disabled title="Coming soon">
-                    </form>
+                    <a href="/download/{{selected_table.id}}" download="{{selected_table.name}}.csv"><img
+                        src="/images/streamline-download-circle.svg" alt="Download as CSV" title="Download as CSV"
+                        width="32" height="32"></a>
                 </div>
             </th>
         </tr>
@@ -47,7 +46,7 @@
                         <form action="/delete-data" method="post">
                             <input type="hidden" name="table_id" value="{{../id}}">
                             <input type="hidden" name="row_id" value="{{this.id}}">
-                            <input type="submit" value="Delete">
+                            <input type="submit" value="Delete" style="width: 100%">
                         </form>
                     </td>
                 </tr>
@@ -64,7 +63,7 @@
                            {{#if this.required}}required{{/if}}>
                 </td>
             {{/each}}
-            <td><input form="add-data-form" type="submit" value="Add"></td>
+            <td><input form="add-data-form" type="submit" value="Add" style="width: 100%"></td>
         </tr>
         </tbody>
     </table>
