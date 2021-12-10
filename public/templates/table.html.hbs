@@ -38,9 +38,19 @@
             {{#each selected_table.rows}}
                 <tr>
                     <td>{{@index}}</td>
-                    {{#each this.data}}
+                    {{#each this.cells}}
                         <!--FIXME: Add word wrapping with "word-wrap: break-word"-->
-                        <td>{{this}}</td>
+                        <td>
+                            {{#if this.hidden}}
+                                <div style="background-color: black; border-radius: 5px"
+                                     onclick="this.innerText = this.dataset.hidden; this.style = '';"
+                                     data-hidden="{{this.data}}">
+                                    &nbsp;
+                                </div>
+                            {{else}}
+                                {{this.data}}
+                            {{/if}}
+                        </td>
                     {{/each}}
                     <td>
                         <form action="/delete-data" method="post">

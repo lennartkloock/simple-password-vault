@@ -20,6 +20,7 @@ pub struct ColumnIndexEntry {
     pub column_name: String,
     pub ui_name: String,
     pub required: bool,
+    pub encrypted: bool,
 }
 
 #[derive(Default, Debug, serde::Serialize)]
@@ -33,7 +34,13 @@ pub struct VaultTable {
 #[derive(Default, Debug, serde::Serialize)]
 pub struct TableRow {
     pub id: u64,
-    pub data: Vec<String>,
+    pub cells: Vec<TableCell>,
+}
+
+#[derive(Default, Debug, serde::Serialize)]
+pub struct TableCell {
+    pub data: String,
+    pub hidden: bool,
 }
 
 impl VaultTable {
@@ -43,7 +50,7 @@ impl VaultTable {
             .from_writer(vec![]);
         wtr.write_record(self.columns.into_iter().map(|c| c.ui_name))?; //Header row
         for row in self.rows {
-            wtr.write_record(row.data)?;
+            wtr.write_record(row.cells.into_iter().map(|c| c.data))?;
         }
         Ok(String::from_utf8(wtr.into_inner()?)?)
     }

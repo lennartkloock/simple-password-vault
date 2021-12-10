@@ -1,6 +1,6 @@
 use crate::VaultConfig;
 use rocket::fairing;
-use sqlx::mysql;
+use sqlx::{mysql, Row};
 use std::collections;
 
 pub mod data;
@@ -70,7 +70,7 @@ impl VaultDb {
 
     pub async fn create_column_index(&self) -> QueryResult {
         log_and_return(
-            sqlx::query("CREATE TABLE IF NOT EXISTS column_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL, column_name varchar(64) NOT NULL, ui_name varchar(64) NOT NULL, required boolean NOT NULL)")
+            sqlx::query("CREATE TABLE IF NOT EXISTS column_index (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, table_name varchar(64) NOT NULL, column_name varchar(64) NOT NULL, ui_name varchar(64) NOT NULL, required boolean NOT NULL, encrypted boolean NOT NULL)")
                 .execute(&self.0)
                 .await
         )
@@ -235,16 +235,18 @@ impl VaultDb {
                 .into_iter()
                 .map(|r| {
                     //XXXX This only works when all columns after id are varchars, better solution?
-                    let mut iter = sqlx::Row::columns(&r).iter();
-                    let id = iter
-                        .next()
-                        .map(|c| sqlx::Row::get(&r, sqlx::Column::ordinal(c)))
-                        .unwrap_or(0);
-                    let data = iter
-                        .map(|c| sqlx::Row::get(&r, sqlx::Column::ordinal(c)))
+                    let id: u64 = r.get("id");
+                    let cells = column_index
+                        .iter()
+                        .filter_map(|c| {
+                            Some(TableCell {
+                                data: r.try_get(&*c.column_name).ok()?,
+                                hidden: c.encrypted,
+                            })
+                        })
                         .collect();
 
-                    TableRow { id, data }
+                    TableRow { id, cells }
                 })
                 .collect();
             sqlx::Result::Ok(Some(VaultTable {
