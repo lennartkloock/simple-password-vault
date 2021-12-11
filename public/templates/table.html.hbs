@@ -69,7 +69,7 @@
             <form action="/delete-data" method="post">
                 <input type="hidden" name="table_id" value="{{../selected_table.id}}">
                 <input type="hidden" name="row_id" value="{{this.id}}">
-                <input type="submit" value="Delete" style="width: 100%">
+                <input type="submit" value="Delete" class="wide">
             </form>
         </td>
         </tr>
@@ -87,7 +87,7 @@
                    {{#if this.required}}required{{/if}}>
         </td>
     {{/each}}
-    <td><input form="add-data-form" type="submit" value="Add" style="width: 100%"></td>
+    <td><input form="add-data-form" type="submit" value="Add" class="wide"></td>
 </tr>
 </tbody>
 </table>
