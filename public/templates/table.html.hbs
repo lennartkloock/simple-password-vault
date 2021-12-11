@@ -7,87 +7,90 @@
 <body>
 {{> navigation name=general.name admin=general.admin page="Vault" logout=true }}
 <div class="padding-to-nav center-container">
-    <table class="responsive-width">
-        <thead>
-        <tr>
-            <th colspan="1000" class="bottom-border">
-                <div class="space-between-container">
-                    <form action="/vault" method="get">
-                        <select name="id" onchange="this.form.submit();">
-                            <option value="{{selected_table.id}}" selected>{{selected_table.name}}</option>
-                            {{#each tables}}
-                                <option value="{{this.id}}">{{this.ui_name}}</option>
-                            {{/each}}
-                        </select>
-                    </form>
-                    <a href="/download/{{selected_table.id}}" download="{{selected_table.name}}.csv"><img
-                        src="/images/streamline-download-circle.svg" alt="Download as CSV" title="Download as CSV"
-                        width="32" height="32"></a>
-                </div>
-            </th>
-        </tr>
-        <tr>
-            <th>#</th>
-            {{#each selected_table.columns}}
-                <th>
-                    {{#if this.encrypted}}
-                        <div class="space-between-container">
-                            {{this.ui_name}}
-                            <img src="/images/streamline-lock.svg" width="16" height="16" alt="Encrpyted"
-                                 title="This column is encrypted">
-                        </div>
-                    {{else}}
+<table class="responsive-width">
+    <thead>
+    <tr>
+        <th colspan="1000" class="bottom-border">
+            <div class="space-between-container">
+                <form action="/vault" method="get">
+                    <select name="id" onchange="this.form.submit();">
+                        <option value="{{selected_table.id}}" selected>{{selected_table.name}}</option>
+                        {{#each tables}}
+                            <option value="{{this.id}}">{{this.ui_name}}</option>
+                        {{/each}}
+                    </select>
+                </form>
+                <a href="/download/{{selected_table.id}}" download="{{selected_table.name}}.csv"><img
+                    src="/images/streamline-download-circle.svg" alt="Download as CSV" title="Download as CSV"
+                    width="32" height="32"></a>
+            </div>
+        </th>
+    </tr>
+    <tr>
+        <th>#</th>
+        {{#each selected_table.columns}}
+            <th>
+                {{#if this.encrypted}}
+                    <div class="space-between-container">
                         {{this.ui_name}}
-                    {{/if}}
-                </th>
-            {{/each}}
-        </tr>
-        </thead>
-        <tbody>
-        {{#if selected_table.rows}}
-            {{#each selected_table.rows}}
-                <tr>
-                    <td>{{@index}}</td>
-                    {{#each this.cells}}
-                        <!--FIXME: Add word wrapping with "word-wrap: break-word"-->
-                        <td>
-                            {{#if this.encrypted}}
-                                <div style="background-color: black; border-radius: 5px"
-                                     onclick="show_hidden(this)"
-                                     title="Show hidden value"
-                                     data-hidden="{{this.data}}">
-                                    &nbsp;
-                                </div>
-                            {{else}}
-                                {{this.data}}
-                            {{/if}}
-                        </td>
-                    {{/each}}
-                    <td>
-                        <form action="/delete-data" method="post">
-                            <input type="hidden" name="table_id" value="{{../selected_table.id}}">
-                            <input type="hidden" name="row_id" value="{{this.id}}">
-                            <input type="submit" value="Delete" style="width: 100%">
-                        </form>
-                    </td>
-                </tr>
-            {{/each}}
-        {{/if}}
+                        <img src="/images/streamline-lock.svg" width="16" height="16" alt="Encrpyted"
+                             title="This column is encrypted">
+                    </div>
+                {{else}}
+                    {{this.ui_name}}
+                {{/if}}
+            </th>
+        {{/each}}
+    </tr>
+    </thead>
+<tbody>
+{{#if selected_table.rows}}
+    {{#each selected_table.rows}}
         <tr>
-            <form id="add-data-form" action="/add-data" method="post">
-                <input type="hidden" name="table_id" value="{{selected_table.id}}">
+            <td>{{@index}}</td>
+        {{#each this.cells}}
+            <td>
+                <div class="wrap-anywhere
+            {{#if this.encrypted}}
+                hidden-cell"
+                onclick="show_hidden(this)"
+                title="Show hidden value"
+                data-hidden="{{this.data}}">
+                &nbsp;
+            </div>
+            {{else}}
+                    ">
+                {{this.data}}
+                </div>
+            {{/if}}
+            </td>
+        {{/each}}
+        <td>
+            <form action="/delete-data" method="post">
+                <input type="hidden" name="table_id" value="{{../selected_table.id}}">
+                <input type="hidden" name="row_id" value="{{this.id}}">
+                <input type="submit" value="Delete" style="width: 100%">
             </form>
-            <td></td>
-            {{#each selected_table.columns}}
-                <td>
-                    <input form="add-data-form" type="text" name="data.{{this.ui_name}}" placeholder="{{this.ui_name}}"
-                           {{#if this.required}}required{{/if}}>
-                </td>
-            {{/each}}
-            <td><input form="add-data-form" type="submit" value="Add" style="width: 100%"></td>
+        </td>
         </tr>
-        </tbody>
-    </table>
+    {{/each}}
+{{/if}}
+<tr>
+    <form id="add-data-form" action="/add-data" method="post">
+        <input type="hidden" name="table_id" value="{{selected_table.id}}">
+    </form>
+    <td></td>
+    {{#each selected_table.columns}}
+        <td>
+            <input class="wide" form="add-data-form" type="text" name="data.{{this.ui_name}}"
+                   placeholder="{{this.ui_name}}"
+                   {{#if this.required}}required{{/if}}>
+        </td>
+    {{/each}}
+    <td><input form="add-data-form" type="submit" value="Add" style="width: 100%"></td>
+</tr>
+</tbody>
+</table>
 </div>
 {{> action-bar }}
 </body>
@@ -97,7 +100,7 @@
             el.innerText = el.dataset.hidden;
             el.dataset.hidden = '';
             el.title = '';
-            el.style = '';
+            el.classList.remove('hidden-cell');
         }
     }
 </script>

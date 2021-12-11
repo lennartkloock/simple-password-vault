@@ -1,0 +1,12 @@
+#submit-button {
+    width: calc(100% - var(--small-space) * 2); /*Full width minus small margin on both sides*/
+}
+
+ol {
+    text-align: right;
+}
+
+form label {
+    text-align: left;
+    margin-right: var(--small-space);
+}

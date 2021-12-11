@@ -7,24 +7,24 @@
 <body>
 {{> navigation name=general.name admin=general.admin page="Add Table" logout=true }}
 <div class="center-container full-height">
-    <div class="center-dialogue">
+    <div class="center-dialogue responsive-width">
         <form method="post">
-            <div class="flex-between small-margin">
+            <div class="space-between-container small-margin">
                 <label for="name-input">Name</label>
                 <input type="text" id="name-input" name="name" placeholder="Name" required>
             </div>
-            <div class="flex-between small-margin">
+            <div class="space-between-container small-margin">
                 <label for="key-input">Key column</label>
                 <input type="text" id="key-input" name="key_column_name" placeholder="Key">
             </div>
-            <div class="flex-between small-margin">
+            <div class="space-between-container small-margin">
                 <label for="password-input">Password column</label>
                 <input type="text" id="password-input" name="password_column_name" placeholder="Password">
             </div>
-            <div class="flex-between small-margin">
+            <div class="space-between-container small-margin">
                 <label for="extra-input">Extra columns</label>
                 <input type="number" id="extra-input" value="0" min="0" max="20" required
-                       oninput="onInput()">
+                       oninput="onInput()" style="width: 50px;">
             </div>
             <ol id="extra-list" class="small-margin"></ol>
             {{> error-box }}

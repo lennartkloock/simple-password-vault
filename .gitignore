@@ -22,7 +22,3 @@ Cargo.lock
 
 ### Rocket
 Rocket.toml
-
-### Only include scss files, not the generated files
-*.css
-*.css.map

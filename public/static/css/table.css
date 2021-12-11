@@ -1,0 +1,25 @@
+table {
+    margin: var(--big-space);
+
+    text-align: left;
+
+    border: var(--table-border);
+    border-radius: 10px;
+}
+
+table th, table td {
+    padding: var(--small-space);
+}
+
+table .bottom-border {
+    border-bottom: var(--table-border);
+}
+
+.hidden-cell {
+    background-color: black;
+    border-radius: 5px;
+}
+
+.hidden-cell:hover {
+    background-color: #4B4B4B;
+}
