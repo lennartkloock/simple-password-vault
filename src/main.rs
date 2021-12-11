@@ -2,6 +2,7 @@ use crate::database::VaultDb;
 use rocket::{fairing, fs, serde};
 use rocket_dyn_templates as templates;
 
+mod crypt;
 mod database;
 mod routes;
 mod sessions;
@@ -13,6 +14,8 @@ pub struct VaultConfig {
     static_dir: String,
     token_length: Option<u32>,
     token_validity_duration_secs: u64,
+    public_key_path: String,
+    private_key_path: String,
 }
 
 #[rocket::main]
@@ -20,6 +23,7 @@ async fn main() {
     let rocket = rocket::build()
         .attach(fairing::AdHoc::config::<VaultConfig>())
         .attach(VaultDb::fairing().await)
+        .attach(crypt::KeyPair::fairing().await)
         .attach(sessions::SessionManager::fairing())
         .attach(templates::Template::fairing())
         .mount("/", routes::admin::get_routes())

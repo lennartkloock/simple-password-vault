@@ -98,9 +98,9 @@ impl VaultDb {
             .last_insert_id();
         let table_name = gen_vault_table_name(id);
 
-        self.insert_column_index_entry(&table_name, "key_", key_ui_name, true)
+        self.insert_column_index_entry(&table_name, "key_", key_ui_name, true, false)
             .await?;
-        self.insert_column_index_entry(&table_name, "password", password_ui_name, true)
+        self.insert_column_index_entry(&table_name, "password", password_ui_name, true, true)
             .await?;
 
         let extra_column_names: Vec<String> = (0..extra.len())
@@ -108,14 +108,20 @@ impl VaultDb {
             .map(|x| format!("{}{}", EXTRA_COLUMN_PREFIX, x))
             .collect();
         for i in 0..extra.len() {
-            self.insert_column_index_entry(&table_name, &extra_column_names[i], extra[i], false)
-                .await?;
+            self.insert_column_index_entry(
+                &table_name,
+                &extra_column_names[i],
+                extra[i],
+                false,
+                false,
+            )
+            .await?;
         }
 
         let extra_columns = extra_column_names
             .iter()
-            .fold(String::new(), |s, e| format!("{}, {} varchar(256)", s, e));
-        let statement = format!("CREATE TABLE IF NOT EXISTS {} (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, key_ varchar(256) NOT NULL, password varchar(256) NOT NULL{})", table_name, extra_columns);
+            .fold(String::new(), |s, e| format!("{}, {} text", s, e));
+        let statement = format!("CREATE TABLE IF NOT EXISTS {} (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, key_ varchar(256) NOT NULL, password text NOT NULL{})", table_name, extra_columns);
         log_and_return(sqlx::query(&statement).execute(&self.0).await)?;
         Ok(id)
     }
@@ -138,15 +144,17 @@ impl VaultDb {
         column_name: &str,
         ui_name: &str,
         required: bool,
+        encrypted: bool,
     ) -> QueryResult {
         log_and_return(
             sqlx::query(
-                "INSERT INTO column_index (table_name, column_name, ui_name, required) VALUES (?, ?, ?, ?)",
+                "INSERT INTO column_index (table_name, column_name, ui_name, required, encrypted) VALUES (?, ?, ?, ?, ?)",
             )
                 .bind(table_name)
                 .bind(column_name)
                 .bind(ui_name)
                 .bind(required)
+                .bind(encrypted)
                 .execute(&self.0)
                 .await,
         )
@@ -241,7 +249,7 @@ impl VaultDb {
                         .filter_map(|c| {
                             Some(TableCell {
                                 data: r.try_get(&*c.column_name).ok()?,
-                                hidden: c.encrypted,
+                                encrypted: c.encrypted,
                             })
                         })
                         .collect();

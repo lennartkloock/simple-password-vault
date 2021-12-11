@@ -3,7 +3,7 @@
 use crate::database::{TableIndexEntry, VaultTable};
 use crate::routes::{GeneralContext, VaultResponse};
 use crate::sessions::{SafeSessionManager, TokenAuthResult, WithCookie, SESSION_TOKEN_COOKIE};
-use crate::{templates, VaultConfig, VaultDb};
+use crate::{crypt, templates, VaultConfig, VaultDb};
 use rocket::{http, response};
 
 pub fn get_routes() -> Vec<rocket::Route> {
@@ -73,6 +73,7 @@ async fn vault_table_id(
     id: u64,
     auth: TokenAuthResult<WithCookie>,
     config: &rocket::State<VaultConfig>,
+    keypair: &rocket::State<crypt::KeyPair>,
     session_manager: &rocket::State<SafeSessionManager>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<templates::Template> {
@@ -90,7 +91,8 @@ async fn vault_table_id(
                         "table-not-found",
                         GeneralContext::from(config.inner()),
                     ),
-                    |table| {
+                    |mut table| {
+                        table.decrypt(keypair);
                         let mut context = TableContext::default();
                         if let Ok(mut other_tables) = table_index {
                             other_tables.retain(|e| e.id != table.id); //Remove the selected table from the list, otherwise it would appear twice in the drop-down

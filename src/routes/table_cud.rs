@@ -4,7 +4,7 @@
 
 use crate::routes::{FlashContext, VaultResponse};
 use crate::sessions::{TokenAuth, TokenAuthResult, WithCookie};
-use crate::{templates, VaultConfig, VaultDb};
+use crate::{crypt, templates, VaultConfig, VaultDb};
 use rocket::{form, http, request};
 use std::collections;
 
@@ -77,22 +77,31 @@ struct AddDataData<'a> {
 async fn add_data_submit(
     form: form::Form<AddDataData<'_>>,
     _auth: TokenAuth<WithCookie>,
+    keypair: &rocket::State<crypt::KeyPair>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<()> {
     if let Ok(index) = database.fetch_column_index_by_id(form.table_id).await {
         if index.is_empty() {
             VaultResponse::Err(http::Status::BadRequest)
         } else {
-            let data: collections::HashMap<&str, &str> = form
+            let data: collections::HashMap<&str, String> = form
                 .data
                 .iter()
                 .filter_map(|d| {
                     let entry = index.iter().find(|e| e.ui_name == *d.0)?;
-                    Some((entry.column_name.as_ref(), *d.1))
+                    let data = if entry.encrypted {
+                        keypair.encrypt_string_to_hex(d.1).ok()?
+                    } else {
+                        d.1.to_string()
+                    };
+                    Some((entry.column_name.as_ref(), data))
                 })
                 .collect();
             if database
-                .insert_vault_data(form.table_id, data)
+                .insert_vault_data(
+                    form.table_id,
+                    data.iter().map(|d| (*d.0, d.1.as_ref())).collect(),
+                )
                 .await
                 .is_ok()
             {

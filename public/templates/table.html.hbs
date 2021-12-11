@@ -29,7 +29,17 @@
         <tr>
             <th>#</th>
             {{#each selected_table.columns}}
-                <th>{{this.ui_name}}</th>
+                <th>
+                    {{#if this.encrypted}}
+                        <div class="space-between-container">
+                            {{this.ui_name}}
+                            <img src="/images/streamline-lock.svg" width="16" height="16" alt="Encrpyted"
+                                 title="This column is encrypted">
+                        </div>
+                    {{else}}
+                        {{this.ui_name}}
+                    {{/if}}
+                </th>
             {{/each}}
         </tr>
         </thead>
@@ -41,9 +51,10 @@
                     {{#each this.cells}}
                         <!--FIXME: Add word wrapping with "word-wrap: break-word"-->
                         <td>
-                            {{#if this.hidden}}
+                            {{#if this.encrypted}}
                                 <div style="background-color: black; border-radius: 5px"
-                                     onclick="this.innerText = this.dataset.hidden; this.style = '';"
+                                     onclick="show_hidden(this)"
+                                     title="Show hidden value"
                                      data-hidden="{{this.data}}">
                                     &nbsp;
                                 </div>
@@ -80,4 +91,14 @@
 </div>
 {{> action-bar }}
 </body>
+<script>
+    function show_hidden(el) {
+        if (el.dataset.hidden) {
+            el.innerText = el.dataset.hidden;
+            el.dataset.hidden = '';
+            el.title = '';
+            el.style = '';
+        }
+    }
+</script>
 </html>

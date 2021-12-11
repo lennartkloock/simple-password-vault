@@ -1,3 +1,5 @@
+use crate::crypt;
+
 #[derive(Debug, sqlx::FromRow, serde::Serialize)]
 pub struct Password {
     pub id: u64,
@@ -40,7 +42,7 @@ pub struct TableRow {
 #[derive(Default, Debug, serde::Serialize)]
 pub struct TableCell {
     pub data: String,
-    pub hidden: bool,
+    pub encrypted: bool,
 }
 
 impl VaultTable {
@@ -53,5 +55,17 @@ impl VaultTable {
             wtr.write_record(row.cells.into_iter().map(|c| c.data))?;
         }
         Ok(String::from_utf8(wtr.into_inner()?)?)
+    }
+
+    pub fn decrypt(&mut self, keypair: &crypt::KeyPair) {
+        for row in &mut self.rows {
+            for mut cell in &mut row.cells {
+                if cell.encrypted {
+                    if let Ok(plain) = keypair.decrypt_string_from_hex(&cell.data) {
+                        cell.data = plain;
+                    }
+                }
+            }
+        }
     }
 }
