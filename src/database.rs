@@ -121,7 +121,7 @@ impl VaultDb {
         let extra_columns = extra_column_names
             .iter()
             .fold(String::new(), |s, e| format!("{}, {} text", s, e));
-        let statement = format!("CREATE TABLE IF NOT EXISTS {} (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, key_ varchar(256) NOT NULL, password text NOT NULL{})", table_name, extra_columns);
+        let statement = format!("CREATE TABLE {} (id int UNSIGNED PRIMARY KEY AUTO_INCREMENT, key_ varchar(256) NOT NULL, password text NOT NULL{})", table_name, extra_columns);
         log_and_return(sqlx::query(&statement).execute(&self.0).await)?;
         Ok(id)
     }
@@ -242,7 +242,6 @@ impl VaultDb {
                 .await?
                 .into_iter()
                 .map(|r| {
-                    //XXXX This only works when all columns after id are varchars, better solution?
                     let id: u64 = r.get("id");
                     let cells = column_index
                         .iter()
