@@ -233,29 +233,43 @@ impl VaultDb {
         self.fetch_column_index(&gen_vault_table_name(id)).await
     }
 
-    pub async fn fetch_table(&self, id: u64) -> sqlx::Result<Option<VaultTable>> {
+    pub async fn fetch_table(
+        &self,
+        id: u64,
+        query: &Option<String>,
+    ) -> sqlx::Result<Option<VaultTable>> {
         if let Some(table_index) = self.fetch_table_index_entry(id).await? {
             let table_name = gen_vault_table_name(table_index.id);
             let column_index = self.fetch_column_index(&table_name).await?;
-            let data = sqlx::query(&format!("SELECT * FROM {}", table_name))
-                .fetch_all(&self.0)
-                .await?
-                .into_iter()
-                .map(|r| {
-                    let id: u64 = r.get("id");
-                    let cells = column_index
-                        .iter()
-                        .filter_map(|c| {
-                            Some(TableCell {
-                                data: r.try_get(&*c.column_name).ok()?,
-                                encrypted: c.encrypted,
-                            })
+            let statement = match query {
+                Some(_) => format!(
+                    "SELECT DISTINCT * FROM {} WHERE LOWER(key_) LIKE LOWER(?) ESCAPE '!'",
+                    table_name
+                ),
+                None => format!("SELECT * FROM {}", table_name),
+            };
+            let data = log_and_return(
+                sqlx::query(&statement)
+                    .bind(query.as_ref().map(|s| gen_search_string(s)))
+                    .fetch_all(&self.0)
+                    .await,
+            )?
+            .into_iter()
+            .map(|r| {
+                let id: u64 = r.get("id");
+                let cells = column_index
+                    .iter()
+                    .filter_map(|c| {
+                        Some(TableCell {
+                            data: r.try_get(&*c.column_name).ok()?,
+                            encrypted: c.encrypted,
                         })
-                        .collect();
+                    })
+                    .collect();
 
-                    TableRow { id, cells }
-                })
-                .collect();
+                TableRow { id, cells }
+            })
+            .collect();
             sqlx::Result::Ok(Some(VaultTable {
                 id,
                 name: table_index.ui_name,
@@ -308,6 +322,18 @@ impl VaultDb {
                 .await,
         )
     }
+}
+
+// From: https://stackoverflow.com/a/8248052/10772729
+fn gen_search_string(query: &str) -> String {
+    format!(
+        "%{}%",
+        query
+            .replace("!", "!!")
+            .replace("%", "%%")
+            .replace("_", "!_")
+            .replace("[", "![")
+    )
 }
 
 fn gen_vault_table_name(id: u64) -> String {

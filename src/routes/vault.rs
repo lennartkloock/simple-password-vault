@@ -31,7 +31,10 @@ async fn vault(
         match database.fetch_table_index().await {
             Ok(index) => {
                 if let Some(first) = index.first() {
-                    VaultResponse::redirect_to(rocket::uri!(vault_table_id(first.id)))
+                    VaultResponse::redirect_to(rocket::uri!(vault_table_id(
+                        first.id,
+                        Option::<String>::None
+                    )))
                 } else {
                     VaultResponse::Ok(templates::Template::render(
                         "no-tables",
@@ -49,6 +52,7 @@ struct TableContext {
     general: GeneralContext,
     selected_table: VaultTable,
     tables: Vec<TableIndexEntry>,
+    query: Option<String>,
 }
 
 impl TableContext {
@@ -66,11 +70,17 @@ impl TableContext {
         self.tables.extend(tables);
         self
     }
+
+    fn with_optional_query(mut self, query: Option<String>) -> Self {
+        self.query = query;
+        self
+    }
 }
 
-#[rocket::get("/vault?<id>")]
+#[rocket::get("/vault?<id>&<q>")]
 async fn vault_table_id(
     id: u64,
+    q: Option<String>,
     auth: TokenAuthResult<WithCookie>,
     config: &rocket::State<VaultConfig>,
     keypair: &rocket::State<crypt::KeyPair>,
@@ -78,7 +88,7 @@ async fn vault_table_id(
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<templates::Template> {
     if let Ok(token) = auth {
-        match database.fetch_table(id).await {
+        match database.fetch_table(id, &q).await {
             Ok(t) => {
                 let table_index = database.fetch_table_index().await; //XXXX: Can't be done in map_or closure because of `await`, better solution?
                 let admin = session_manager
@@ -105,6 +115,7 @@ async fn vault_table_id(
                                     admin,
                                     ..GeneralContext::from(config.inner())
                                 })
+                                .with_optional_query(q)
                                 .with_selected_table(table),
                         )
                     },

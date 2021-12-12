@@ -16,7 +16,7 @@ async fn download(
     _auth: TokenAuth<WithCookie>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<(http::ContentType, String)> {
-    match database.fetch_table(id).await.map(|table| {
+    match database.fetch_table(id, &None).await.map(|table| {
         table.map(|mut t| {
             t.decrypt(keypair);
             t.export_csv()

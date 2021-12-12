@@ -59,7 +59,10 @@ async fn add_submit(
         .create_vault_table(form.name, key_ui_name, password_ui_name, &form.extra)
         .await
     {
-        Ok(id) => VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(id))),
+        Ok(id) => VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(
+            id,
+            Option::<String>::None
+        ))),
         Err(sqlx::Error::Database(e)) => {
             VaultResponse::flash_error_redirect_to(rocket::uri!(add), e.message())
         }
@@ -106,7 +109,8 @@ async fn add_data_submit(
                 .is_ok()
             {
                 VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(
-                    form.table_id
+                    form.table_id,
+                    Option::<String>::None
                 )))
             } else {
                 VaultResponse::Err(http::Status::InternalServerError)
@@ -134,7 +138,10 @@ async fn delete_data_submit(
         .await
         .is_ok()
     {
-        VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(form.table_id)))
+        VaultResponse::redirect_to(rocket::uri!(super::vault::vault_table_id(
+            form.table_id,
+            Option::<String>::None
+        )))
     } else {
         VaultResponse::Err(http::Status::InternalServerError)
     }

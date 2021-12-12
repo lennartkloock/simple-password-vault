@@ -14,7 +14,7 @@
   * [x] View data
   * [x] Add data
   * [x] Remove data
-  * [ ] Search data
+  * [x] Search data
   * [x] Encryption
   * [x] Export data as csv
   * [ ] Import data from csv

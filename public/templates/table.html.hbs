@@ -20,6 +20,11 @@
                         {{/each}}
                     </select>
                 </form>
+                <form action="/vault" method="get" class="center-container">
+                    <input type="hidden" name="id" value="{{selected_table.id}}">
+                    <input id="search-q" type="text" name="q" value="{{query}}">
+                    <input type="submit" value="Search" style="margin-left: var(--small-space)">
+                </form>
                 <a href="/download/{{selected_table.id}}" download="{{selected_table.name}}.csv"><img
                     src="/images/streamline-download-circle.svg" alt="Download as CSV" title="Download as CSV"
                     width="32" height="32"></a>
