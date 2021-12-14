@@ -35,6 +35,13 @@ impl From<&VaultConfig> for GeneralContext {
     }
 }
 
+impl GeneralContext {
+    fn with_admin(mut self, admin: bool) -> Self {
+        self.admin = admin;
+        self
+    }
+}
+
 #[derive(Default, serde::Serialize)]
 struct FlashContext {
     general: GeneralContext,

@@ -111,10 +111,9 @@ async fn vault_table_id(
                         templates::Template::render(
                             "table",
                             context
-                                .with_general_context(GeneralContext {
-                                    admin,
-                                    ..GeneralContext::from(config.inner())
-                                })
+                                .with_general_context(
+                                    GeneralContext::from(config.inner()).with_admin(admin),
+                                )
                                 .with_optional_query(q)
                                 .with_selected_table(table),
                         )
