@@ -65,7 +65,7 @@ async fn admin(
     }
 }
 
-#[rocket::get("/admin/add-password")]
+#[rocket::get("/admin/add")]
 async fn add_password(
     auth: TokenAuthResult<WithCookie>,
     config: &rocket::State<VaultConfig>,
@@ -100,7 +100,7 @@ struct AddPasswordData<'a> {
     admin: bool,
 }
 
-#[rocket::post("/admin/add-password", data = "<form>")]
+#[rocket::post("/admin/add", data = "<form>")]
 async fn add_password_submit(
     auth: TokenAuthResult<WithCookie>,
     session_manager: &rocket::State<SafeSessionManager>,
