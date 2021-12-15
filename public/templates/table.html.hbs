@@ -12,7 +12,7 @@
     <tr>
         <th colspan="1000" class="bottom-border">
             <div class="space-between-container">
-                <form action="/vault" method="get">
+                <form action="/vault" method="get" class="small-margin">
                     <select name="id" onchange="this.form.submit();">
                         <option value="{{selected_table.id}}" selected>{{selected_table.name}}</option>
                         {{#each tables}}
@@ -20,16 +20,18 @@
                         {{/each}}
                     </select>
                 </form>
-                <form action="/vault" method="get" class="center-container">
+                <form action="/vault" method="get" class="center-container small-margin">
                     <input type="hidden" name="id" value="{{selected_table.id}}">
                     <input id="search-q" type="text" name="q" value="{{query}}">
                     <input type="submit" value="Search" style="margin-left: var(--small-space)">
                 </form>
                 <div>
-                    <a href="/download/{{selected_table.id}}" download="{{selected_table.name}}.csv"><img
-                        src="/images/streamline-download-square.svg" alt="Download as CSV" title="Download as CSV"
-                        width="32" height="32"></a>
-                    <a href="/edit"></a>
+                    <a href="/download/{{selected_table.id}}" download="{{selected_table.name}}.csv" title="Download as CSV" class="small-margin">
+                        <img src="/images/streamline-download-square.svg" alt="Download as CSV" width="32" height="32">
+                    </a>
+                    <a href="/edit?id={{selected_table.id}}" title="Edit Table">
+                        <img src="/images/streamline-setting-cog.svg" alt="Edit Table" width="32" height="32">
+                    </a>
                 </div>
             </div>
         </th>

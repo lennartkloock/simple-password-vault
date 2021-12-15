@@ -11,7 +11,7 @@
     * [x] Logout
 * [ ] Tables
     * [x] Create
-    * [ ] Delete
+    * [x] Delete
     * [x] View data
     * [x] Add data
     * [x] Remove data

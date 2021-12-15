@@ -2,6 +2,7 @@
 
 //! Contains all routes that create, update or delete (`CUD`) tables
 
+use crate::database::VaultTable;
 use crate::routes::{FlashContext, VaultResponse};
 use crate::sessions::{TokenAuth, TokenAuthResult, WithCookie};
 use crate::{crypt, templates, VaultConfig, VaultDb};
@@ -9,7 +10,15 @@ use rocket::{form, http, request};
 use std::collections;
 
 pub fn get_routes() -> Vec<rocket::Route> {
-    rocket::routes![add, add_submit, add_data_submit, delete_data_submit]
+    rocket::routes![
+        add,
+        add_submit,
+        add_data_submit,
+        delete_data_submit,
+        edit,
+        import_submit,
+        delete_submit
+    ]
 }
 
 #[rocket::get("/add")]
@@ -145,4 +154,61 @@ async fn delete_data_submit(
     } else {
         VaultResponse::Err(http::Status::InternalServerError)
     }
+}
+
+#[derive(serde::Serialize)]
+struct EditTableContext {
+    flash: FlashContext,
+    table: VaultTable,
+}
+
+#[rocket::get("/edit?<id>")]
+async fn edit(
+    auth: TokenAuthResult<WithCookie>,
+    id: u64,
+    config: &rocket::State<VaultConfig>,
+    flash: Option<request::FlashMessage<'_>>,
+    database: &rocket::State<VaultDb>,
+) -> VaultResponse<templates::Template> {
+    if auth.is_err() {
+        VaultResponse::redirect_to(rocket::uri!(super::authentication::login))
+    } else {
+        match database.fetch_table(id, &None).await {
+            Ok(table) => table.map_or(VaultResponse::Err(http::Status::NotFound), |t| {
+                VaultResponse::Ok(templates::Template::render(
+                    "edit",
+                    EditTableContext {
+                        flash: FlashContext::default()
+                            .with_config(config.inner())
+                            .with_optional_flash(flash),
+                        table: t,
+                    },
+                ))
+            }),
+            Err(_) => VaultResponse::Err(http::Status::InternalServerError),
+        }
+    }
+}
+
+#[rocket::post("/import")]
+async fn import_submit(_auth: TokenAuth<WithCookie>) -> VaultResponse<()> {
+    unimplemented!()
+}
+
+#[derive(rocket::FromForm)]
+struct DeleteData {
+    table_id: u64,
+}
+
+#[rocket::post("/delete", data = "<form>")]
+async fn delete_submit(
+    _auth: TokenAuth<WithCookie>,
+    form: form::Form<DeleteData>,
+    database: &rocket::State<VaultDb>,
+) -> VaultResponse<()> {
+    database
+        .delete_vault_table(form.table_id)
+        .await
+        .map(|_| VaultResponse::redirect_to(rocket::uri!(super::vault::vault)))
+        .unwrap_or(VaultResponse::Err(http::Status::InternalServerError))
 }

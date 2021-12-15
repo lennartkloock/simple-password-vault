@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{> head name=flash.general.name page="Edit Table"}}
+    <link rel="stylesheet" href="/css/edit.css">
+</head>
+<body>
+{{> navigation name=flash.general.name page="Edit Table" admin=false logout=true }}
+<div class="padding-to-nav">
+    <div class="center-container small-margin">
+        <div>{{> error-box kind=flash.kind message=flash.message }}</div>
+    </div>
+    <div class="center-container">
+        <div class="grid">
+            <h1 class="center-container" style="grid-area: header">{{table.name}}</h1>
+            <div style="grid-area: import" class="grid-panel center-column-container">
+                <h3 class="small-margin">Import (Not implemented)</h3>
+                <form action="/import" method="post" class="big-margin">
+                    <input type="file" name="upload">
+                    <input type="submit" value="Import">
+                </form>
+            </div>
+            <div style="grid-area: modify; padding: var(--big-space)" class="grid-panel center-column-container">
+                <h3 class="small-margin">Modify</h3>
+                <button class="big-margin big-button" type="button" onclick="showDeleteForm(this)">Delete {{table.name}}</button>
+                <form action="/delete" method="post" id="delete-form" class="hidden big-margin center-column-container">
+                    <p>Please enter the name of the table you want to delete</p>
+                    <input type="hidden" name="table_id" value="{{table.id}}">
+                    <input class="small-margin" type="text" placeholder="{{table.name}}" pattern="{{table.name}}" required>
+                    <input class="big-button" type="submit" value="Delete {{table.name}}">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    function showDeleteForm(btn) {
+        document.getElementById('delete-form').classList.remove('hidden');
+        btn.classList.add('hidden');
+    }
+</script>
+</html>

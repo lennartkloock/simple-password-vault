@@ -1,0 +1,25 @@
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--small-space) var(--small-space);
+    grid-template-areas:
+        "header header"
+        "import modify";
+}
+
+.grid-panel {
+    margin: var(--small-space);
+    border: dashed black;
+    border-radius: var(--small-space);
+}
+
+@media only screen and (max-width: 600px) {
+    .grid {
+        grid-template-columns: 1fr;
+        row-gap: var(--big-space);
+        grid-template-areas:
+            "header"
+            "import"
+            "modify";
+    }
+}

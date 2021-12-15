@@ -79,6 +79,10 @@ a {
     border-radius: 15px;
 }
 
+.hidden {
+    display: none;
+}
+
 @media only screen and (max-width: 600px) {
     .responsive-width {
         width: 100vw;

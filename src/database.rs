@@ -314,10 +314,38 @@ impl VaultDb {
         )
     }
 
-    pub async fn delete_password(&self, password_id: u64) -> QueryResult {
+    pub async fn delete_password(&self, id: u64) -> QueryResult {
         log_and_return(
             sqlx::query("DELETE FROM auth WHERE id = ?")
-                .bind(password_id)
+                .bind(id)
+                .execute(&self.0)
+                .await,
+        )
+    }
+
+    pub async fn delete_column_index(&self, table_id: u64) -> QueryResult {
+        log_and_return(
+            sqlx::query("DELETE FROM column_index WHERE table_name = ?")
+                .bind(gen_vault_table_name(table_id))
+                .execute(&self.0)
+                .await,
+        )
+    }
+
+    pub async fn delete_table_index_entry(&self, table_id: u64) -> QueryResult {
+        log_and_return(
+            sqlx::query("DELETE FROM table_index WHERE id = ?")
+                .bind(table_id)
+                .execute(&self.0)
+                .await,
+        )
+    }
+
+    pub async fn delete_vault_table(&self, id: u64) -> QueryResult {
+        self.delete_column_index(id).await?;
+        self.delete_table_index_entry(id).await?;
+        log_and_return(
+            sqlx::query(&format!("DROP TABLE {}", gen_vault_table_name(id)))
                 .execute(&self.0)
                 .await,
         )
