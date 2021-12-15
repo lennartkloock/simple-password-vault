@@ -40,8 +40,8 @@ struct AddTableData<'a> {
 
 #[rocket::post("/add", data = "<form>")]
 async fn add_submit(
-    form: form::Form<AddTableData<'_>>,
     _auth: TokenAuth<WithCookie>,
+    form: form::Form<AddTableData<'_>>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<()> {
     let key_ui_name = if form.key_column_name.is_empty() {
@@ -78,8 +78,8 @@ struct AddDataData<'a> {
 
 #[rocket::post("/add-data", data = "<form>")]
 async fn add_data_submit(
-    form: form::Form<AddDataData<'_>>,
     _auth: TokenAuth<WithCookie>,
+    form: form::Form<AddDataData<'_>>,
     keypair: &rocket::State<crypt::KeyPair>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<()> {
@@ -129,8 +129,8 @@ struct DeleteDataData {
 
 #[rocket::post("/delete-data", data = "<form>")]
 async fn delete_data_submit(
-    form: form::Form<DeleteDataData>,
     _auth: TokenAuth<WithCookie>,
+    form: form::Form<DeleteDataData>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<()> {
     if database

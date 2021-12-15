@@ -11,9 +11,9 @@ pub fn get_routes() -> Vec<rocket::Route> {
 
 #[rocket::get("/download/<id>")]
 async fn download(
+    _auth: TokenAuth<WithCookie>,
     id: u64,
     keypair: &rocket::State<crypt::KeyPair>,
-    _auth: TokenAuth<WithCookie>,
     database: &rocket::State<VaultDb>,
 ) -> VaultResponse<(http::ContentType, String)> {
     match database.fetch_table(id, &None).await.map(|table| {
