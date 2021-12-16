@@ -7,7 +7,6 @@ repository = "https://github.com/lennartkloock/simple-password-vault"
 edition = "2021"
 readme = "README.md"
 license = "MIT"
-license-file = "LICENSE"
 
 [dependencies]
 serde = "1.0"
