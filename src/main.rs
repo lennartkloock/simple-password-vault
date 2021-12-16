@@ -1,3 +1,9 @@
+//! # 🔐 Simple Password Vault
+//! 🚧 In development 🚧
+//!
+//! ## License
+//! This software is licensed under the terms of the MIT license
+
 use crate::database::VaultDb;
 use rocket::{fairing, fs, serde};
 use rocket_dyn_templates as templates;
