@@ -6,6 +6,7 @@
 * [x] User Passwords
     * [x] Create
     * [x] Delete
+    * [ ] Salting
 * [x] Sessions
     * [x] Login
     * [x] Logout
