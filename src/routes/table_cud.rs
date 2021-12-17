@@ -16,7 +16,6 @@ pub fn get_routes() -> Vec<rocket::Route> {
         add_data_submit,
         delete_data_submit,
         edit,
-        import_submit,
         delete_submit
     ]
 }
@@ -188,11 +187,6 @@ async fn edit(
             Err(_) => VaultResponse::Err(http::Status::InternalServerError),
         }
     }
-}
-
-#[rocket::post("/import")]
-async fn import_submit(_auth: TokenAuth<WithCookie>) -> VaultResponse<()> {
-    unimplemented!()
 }
 
 #[derive(rocket::FromForm)]

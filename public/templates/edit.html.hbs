@@ -14,9 +14,10 @@
         <div class="grid">
             <h1 class="center-container" style="grid-area: header">{{table.name}}</h1>
             <div style="grid-area: import" class="grid-panel center-column-container">
-                <h3 class="small-margin">Import (Not implemented)</h3>
-                <form action="/import" method="post" class="big-margin">
-                    <input type="file" name="upload">
+                <h3 class="small-margin">Import</h3>
+                <form action="/import" method="post" class="big-margin" enctype="multipart/form-data">
+                    <input type="hidden" name="table_id" value="{{table.id}}">
+                    <input type="file" name="upload" accept="text/csv">
                     <input type="submit" value="Import">
                 </form>
             </div>

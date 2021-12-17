@@ -3,14 +3,14 @@
 ## UI
 
 * [x] Create admin account on first usage
-* [x] User Passwords
+* [ ] User Passwords
     * [x] Create
     * [x] Delete
     * [ ] Salting
 * [x] Sessions
     * [x] Login
     * [x] Logout
-* [ ] Tables
+* [x] Tables
     * [x] Create
     * [x] Delete
     * [x] View data
@@ -19,7 +19,7 @@
     * [x] Search data
     * [x] Encryption
     * [x] Export data as csv
-    * [ ] Import data from csv
+    * [x] Import data from csv
 
 ### Nice-to-have
 
