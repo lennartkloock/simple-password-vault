@@ -3,10 +3,10 @@
 ## UI
 
 * [x] Create admin account on first usage
-* [ ] User Passwords
+* [ ] Manage Access
     * [x] Create
     * [x] Delete
-    * [ ] Salting
+    * [ ] Password salting
 * [x] Sessions
     * [x] Login
     * [x] Logout
