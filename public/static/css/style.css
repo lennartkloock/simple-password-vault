@@ -20,6 +20,14 @@ a {
     color: inherit;
 }
 
+button, input[type="submit"], input[type="file"] {
+    cursor: pointer;
+}
+
+.no-select {
+    user-select: none;
+}
+
 .full-width {
     width: 100vw;
 }

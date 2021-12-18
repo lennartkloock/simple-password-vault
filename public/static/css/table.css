@@ -18,6 +18,7 @@ table .bottom-border {
 .hidden-cell {
     background-color: black;
     border-radius: 5px;
+    cursor: pointer;
 }
 
 .hidden-cell:hover {

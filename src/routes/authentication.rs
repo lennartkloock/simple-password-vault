@@ -80,7 +80,7 @@ async fn login_submit(
 #[rocket::post("/logout")]
 async fn logout_submit(cookies: &http::CookieJar<'_>) -> VaultResponse<()> {
     cookies.remove(http::Cookie::named(SESSION_TOKEN_COOKIE));
-    VaultResponse::flash_success_redirect_to(rocket::uri!(login), "Successfully logged out")
+    VaultResponse::flash_success_redirect_to(rocket::uri!(login), "Logged out")
 }
 
 #[rocket::get("/new-admin-password")]

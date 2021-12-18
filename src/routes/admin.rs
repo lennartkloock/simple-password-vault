@@ -154,7 +154,7 @@ async fn delete_password_submit(
             match database.delete_password(form.password_id).await {
                 Ok(_) => VaultResponse::flash_success_redirect_to(
                     rocket::uri!(admin),
-                    "Successfully deleted password",
+                    "Deleted password",
                 ),
                 Err(sqlx::Error::Database(e)) => {
                     VaultResponse::flash_error_redirect_to(rocket::uri!(admin), e.message())

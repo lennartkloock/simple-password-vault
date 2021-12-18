@@ -55,7 +55,7 @@ async fn import_submit(
                 ImportError::CsvError(e) => response_from_csv_err(e.kind(), form.table_id),
                 ImportError::ColumnMismatch => VaultResponse::flash_error_redirect_to(
                     rocket::uri!(super::table_cud::edit(form.table_id)),
-                    "The selected file does not contain the same columns",
+                    "The selected file does not contain the same columns as the selected table",
                 ),
                 ImportError::DatabaseError => VaultResponse::Err(http::Status::InternalServerError),
                 ImportError::TableNotFound => VaultResponse::Err(http::Status::NotFound),
