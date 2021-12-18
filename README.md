@@ -6,7 +6,7 @@
 
 ### 📂 Download
 
-First, please create a new folder. The folder name doesn't matter, using `spv` here.
+First, please create a new folder. The folder name doesn't matter (Using `spv` here).
 
 ```shell
 mkdir spv && cd spv
@@ -16,7 +16,7 @@ Then, download the latest tar archive from [releases](https://github.com/lennart
 and unpack it.
 
 ```shell
-TODO
+curl -sL --url 'https://github.com/lennartkloock/simple-password-vault/releases' --output ''
 ```
 
 Now, the new folder should contain the following items:
@@ -27,17 +27,17 @@ Now, the new folder should contain the following items:
 
 ### 🔧 Configuration
 
-To make sure the password vault can encrypt all stored passwords securely, please generate a new RSA keypair first. The
-keypair must be encoded in PEM PKCS#1.
+To make sure the password vault can encrypt all stored passwords securely, please generate a new RSA keypair.
+The keypair must be encoded in PEM PKCS#1.
 
 ```shell
 openssl genrsa -out keys/rsakey.pem 2048
 openssl rsa -in keys/rsakey.pem -outform PEM -pubout -out keys/rsapubkey.pem
 ```
 
-To configure the password vault, please edit the `Rocket.toml` file.
-Since the password vault is built on top of the [Rocket](https://rocket.rs) framework, the configuration format and all
-of [rocket's configuration parameters](https://rocket.rs/v0.5-rc/guide/configuration/#overview) can be used to further
+To configure the password vault, please edit the `Rocket.toml` file. Since the password vault is built on top of
+the [Rocket](https://rocket.rs) framework, the configuration format and all
+of [rocket's configuration parameters](https://rocket.rs/v0.5-rc/guide/configuration) can be used to further
 configure the password vault.
 
 Additionally, the following keys can be used:
@@ -52,17 +52,34 @@ Additionally, the following keys can be used:
 | `public_key_path`              | The path to the public encryption key (relative to the binary)                       | `"keys/rsapubkey.pem"` | `"keys/key_pub.pem"`                                |
 | `private_key_path`             | The path to the private encryption key (relative to the binary)                      | `"keys/rsakey.pem"`    | `"keys/key.pem"`                                    |
 
-**⚠️ Attention**: Be aware that every file placed in the folder specified in `static_dir` or any sub folder will be
+**⚠️ Attention**: Be aware that every file placed in the folder specified in `static_dir` or any sub folders will be
 publicly reachable through the webserver!
 
 ### Example configuration
+
 ```toml
-[release]
+[default]
 address = "0.0.0.0"
+port = 80
 name = "Password Vault"
 db_url = "mariadb://root:password@localhost:3306/vault_db"
 template_dir = "public/templates"
 ```
+
+### 🚀 Run it
+
+**Note**: You will need to create the specified database, otherwise the next step will fail. (For example with: `CREATE DATABASE vault_db;`)
+
+After editing the `Rocket.toml` file according to your wishes, you can run the binary:
+```shell
+./simple-password-vault
+```
+
+When everything worked you should be able to navigate to the specified port in your web browser.
+
+In the following you have to set a new password for the admin account.
+This only happens at the first launch of the application or when all admin accounts were deleted.
+After logging in with your newly created admin account, the password vault is ready to be used.
 
 ## 📷 Screenshots
 
@@ -72,7 +89,8 @@ template_dir = "public/templates"
 
 ## 📜 License
 
-This software is licensed under the terms of the [MIT license](https://github.com/lennartkloock/simple-password-vault/blob/master/LICENSE).
+This software is licensed under the terms of
+the [MIT license](https://github.com/lennartkloock/simple-password-vault/blob/master/LICENSE).
 
 <hr>
 
