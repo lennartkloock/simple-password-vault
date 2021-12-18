@@ -1,6 +1,7 @@
 use crate::VaultConfig;
 use rocket::{fairing, tokio};
-use rsa::pkcs8::{FromPrivateKey, FromPublicKey};
+use rsa::pkcs1::FromRsaPrivateKey;
+use rsa::pkcs8::FromPublicKey;
 use rsa::PublicKey;
 use std::{error, string};
 
@@ -15,7 +16,7 @@ impl KeyPair {
         let private = tokio::fs::read_to_string(private_key_path).await?;
         Ok(Self(
             rsa::RsaPublicKey::from_public_key_pem(&public)?,
-            rsa::RsaPrivateKey::from_pkcs8_pem(&private)?,
+            rsa::RsaPrivateKey::from_pkcs1_pem(&private)?,
         ))
     }
 
