@@ -7,31 +7,18 @@ pub mod table_cud;
 pub mod vault;
 pub mod xport;
 
-#[derive(serde::Serialize)]
+#[derive(Default, serde::Serialize)]
 struct GeneralContext {
     name: String,
     admin: bool,
 }
 
-impl Default for GeneralContext {
-    fn default() -> Self {
-        Self {
-            name: "Password Vault".to_string(),
-            admin: false,
-        }
-    }
-}
-
 impl From<&VaultConfig> for GeneralContext {
     fn from(config: &VaultConfig) -> Self {
-        config
-            .name
-            .clone()
-            .map(|name| GeneralContext {
-                name,
-                ..GeneralContext::default()
-            })
-            .unwrap_or_default()
+        Self {
+            name: config.name.clone(),
+            ..Self::default()
+        }
     }
 }
 

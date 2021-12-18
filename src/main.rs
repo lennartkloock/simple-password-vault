@@ -15,13 +15,38 @@ mod sessions;
 
 #[derive(Debug, serde::Deserialize)]
 pub struct VaultConfig {
-    name: Option<String>,
+    #[serde(default = "default_name")]
+    name: String,
     db_url: String,
+    #[serde(default = "default_static_dir")]
     static_dir: String,
-    token_length: Option<u32>,
+    #[serde(default = "default_token_length")]
+    token_length: u32,
+    #[serde(default = "default_token_validity")]
     token_validity_duration_secs: u64,
+    #[serde(default = "default_public_key")]
     public_key_path: String,
+    #[serde(default = "default_private_key")]
     private_key_path: String,
+}
+
+fn default_name() -> String {
+    "Password Vault".to_string()
+}
+fn default_static_dir() -> String {
+    "public/static".to_string()
+}
+fn default_token_length() -> u32 {
+    32
+}
+fn default_token_validity() -> u64 {
+    86400
+}
+fn default_public_key() -> String {
+    "keys/rsapubkey.pem".to_string()
+}
+fn default_private_key() -> String {
+    "keys/rsakey.pem".to_string()
 }
 
 #[rocket::main]

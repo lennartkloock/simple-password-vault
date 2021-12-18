@@ -53,7 +53,7 @@ async fn login_submit(
         Ok(password) => {
             if let Some(p) = password {
                 let token = session_manager.lock().await.generate_session(
-                    config.token_length.unwrap_or(32) as usize,
+                    config.token_length as usize,
                     std::time::Duration::from_secs(config.token_validity_duration_secs),
                     p.admin,
                 );
