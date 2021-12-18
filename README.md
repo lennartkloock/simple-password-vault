@@ -66,6 +66,10 @@ template_dir = "public/templates"
 
 ## 📷 Screenshots
 
+![no-table](https://user-images.githubusercontent.com/39778085/146641984-09915746-42c1-4b6e-9609-a2324e1cdae4.png)
+![important-passwords](https://user-images.githubusercontent.com/39778085/146641990-dc83ac57-82c8-4668-9f21-0bf15a1dc9e9.png)
+![customer-passwords](https://user-images.githubusercontent.com/39778085/146641991-381d4635-ef3b-482f-8a1d-aabc31e3094d.png)
+
 ## 📜 License
 
 This software is licensed under the terms of the [MIT license](https://github.com/lennartkloock/simple-password-vault/blob/master/LICENSE).
