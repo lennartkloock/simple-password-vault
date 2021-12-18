@@ -6,23 +6,19 @@
 
 ### 📂 Download
 
-First, please create a new folder. The folder name doesn't matter (Using `spv` here).
-
-```shell
-mkdir spv && cd spv
-```
-
-Then, download the latest tar archive from [releases](https://github.com/lennartkloock/simple-password-vault/releases)
+First, download the latest tar archive from [releases](https://github.com/lennartkloock/simple-password-vault/releases)
 and unpack it.
 
 ```shell
-curl -sL --url 'https://github.com/lennartkloock/simple-password-vault/releases' --output ''
+curl -sL --url 'https://github.com/lennartkloock/simple-password-vault/releases/download/v0.2.0/simple_password_vault.tar.gz' --output 'simple_password_vault.tar.gz'
+tar -xzf simple_password_vault.tar.gz
+cd spv
 ```
 
 Now, the new folder should contain the following items:
 
 - the server binary `simple-password-vault`
-- the configuration file `Rocket.toml`
+- the default configuration file `Rocket.toml`
 - a folder called `public` (This folder contains all HTML, CSS and images)
 
 ### 🔧 Configuration
