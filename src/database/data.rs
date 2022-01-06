@@ -41,9 +41,9 @@ pub struct ColumnIndexEntry {
     pub id: u64,
     /// The column's table name
     ///
-    /// See also: [`TableIndexEntry`]'s `id` field
+    /// *See also: [`TableIndexEntry`]'s `id` field*
     pub table_name: String,
-    /// The column's name in the database
+    /// The column's name in the database (Do not confuse with `ui_name`!)
     pub column_name: String,
     /// The column's ui name
     pub ui_name: String,
@@ -59,11 +59,11 @@ pub struct ColumnIndexEntry {
 pub struct VaultTable {
     /// The table's id
     ///
-    /// See also: [`TableIndexEntry`]'s `id` field
+    /// *See also: [`TableIndexEntry`]'s `id` field*
     pub id: u64,
     /// The table's ui name
     ///
-    /// See also: [`TableIndexEntry`]'s `ui_name` field
+    /// *See also: [`TableIndexEntry`]'s `ui_name` field*
     pub name: String,
     /// The table's columns
     pub columns: Vec<ColumnIndexEntry>,
@@ -107,10 +107,10 @@ impl VaultTable {
 
     /// Decrypts all cells in this table that are marked as encrypted **in place**.
     ///
-    /// See also: [`TableCell`]
     /// # Arguments
-    ///
     /// * `keypair`: The key pair that will be used to decrypt the cell's data
+    ///
+    /// *See also: [`TableCell`]*
     pub fn decrypt(&mut self, keypair: &crypt::KeyPair) {
         for row in &mut self.rows {
             for mut cell in &mut row.cells {
